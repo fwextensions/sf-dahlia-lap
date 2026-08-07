@@ -17,11 +17,11 @@ class ApiController < ActionController::API
     status = opts.status || :internal_server_error
     if opts.exception
       e = opts.exception
-      message = "#{e.class.name}, #{e.message}"
+      message = "#{e.class.name}, #{e.message}, #{e.backtrace[0..3]}"
     else
       message = 'Not found.'
     end
-    Raven.capture_exception(e)
+    Sentry.capture_exception(e)
     logger.error "<< API Error >> #{message}"
     status_code = Rack::Utils::SYMBOL_TO_STATUS_CODE[status]
     render json: { message: message, status: status_code }, status: status

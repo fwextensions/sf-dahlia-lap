@@ -155,7 +155,8 @@ const Sidebar = ({
   loading,
   onChangeStatus,
   onAddCommentClicked,
-  onSaveClicked
+  onSaveClicked,
+  statusOptions
 }) => {
   return (
     <div className='sticky-sidebar-large-up'>
@@ -165,12 +166,22 @@ const Sidebar = ({
         onChangeStatus={onChangeStatus}
         onAddCommentClicked={onAddCommentClicked}
         onSaveClicked={onSaveClicked}
+        statusOptions={statusOptions}
       />
     </div>
   )
 }
 
-const SupplementalApplicationContainer = ({ handleSubmit, form, touched, values, visited }) => {
+const SupplementalApplicationContainer = ({
+  handleSubmit,
+  form,
+  touched,
+  values,
+  visited,
+  listingId,
+  statusOptions,
+  substatusOptions
+}) => {
   const [failed, setFailed] = useState(false)
   const [
     {
@@ -241,6 +252,7 @@ const SupplementalApplicationContainer = ({ handleSubmit, form, touched, values,
               onAddCommentClicked={() => handleAddCommentClicked(form, touched)}
               onChangeStatus={(value) => onChangeStatus(form, touched, value)}
               onSaveClicked={() => checkForValidationErrors(form, touched)}
+              statusOptions={statusOptions}
             />
           </AsymColumnLayout.Sidebar>
         </AsymColumnLayout.Container>
@@ -266,6 +278,8 @@ const SupplementalApplicationContainer = ({ handleSubmit, form, touched, values,
         submitButton={state.statusModal.isInAddCommentMode ? 'Save' : 'Update'}
         subStatus={state.statusModal.substatus}
         title={state.statusModal.isInAddCommentMode ? 'Add New Comment' : 'Update Status'}
+        substatusOptions={substatusOptions}
+        statusOptions={statusOptions}
       />
     </>
   )

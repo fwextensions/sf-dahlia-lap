@@ -31,6 +31,7 @@ const mockPutRequest = jest.fn(() => Promise.resolve(true))
 const mockDestroyRequest = jest.fn(() => Promise.resolve(true))
 const mockFetchFlaggedApplicationsRequest = jest.fn(() => Promise.resolve(true))
 const mockFetchApplicationsForLotteryResults = jest.fn(() => Promise.resolve({}))
+const mockFetchLotteryResults = jest.fn(() => Promise.resolve({}))
 const mockFetchLeaseUpApplications = jest.fn(() =>
   Promise.resolve({ records: [], pages: 0, listing_type: 'Standard Lottery', total_size: 0 })
 )
@@ -419,15 +420,172 @@ describe('apiService', () => {
     })
   })
 
-  describe('fetchLeaseUpApplications', () => {
+  describe('fetchLotteryResults', () => {
+    test('calls request.get', async () => {
+      request.get = mockFetchLotteryResults
+      await apiService.fetchLotteryResults('fake-listing-id')
+      expect(mockFetchLotteryResults.mock.calls[0][0]).toBe(
+        `/lottery-results?listing_id=fake-listing-id&use_lottery_result_api=true`
+      )
+    })
+  })
+
+  describe('fetchLeaseUpApplicationsPagination', () => {
     beforeAll(() => {
       request.get = mockLeaseUpApplicationsGetRequest
     })
 
     test('calls request.get', async () => {
       request.get = mockFetchLeaseUpApplications
-      await apiService.fetchLeaseUpApplications('fake-listing-id', 0, { filters: { test: 'test' } })
+      await apiService.fetchLeaseUpApplicationsPagination('fake-listing-id', 0, {
+        filters: { test: 'test' }
+      })
       expect(mockFetchLeaseUpApplications.mock.calls[0][0]).toBe(`/lease-ups/applications`)
+    })
+  })
+
+  describe('getShortFormApplication', () => {
+    describe('when annual_income is present', () => {
+      let result
+      beforeEach(async () => {
+        request.get = jest.fn(() =>
+          Promise.resolve({
+            application: { id: 'app1', annual_income: 120000, monthly_income: null },
+            file_base_url: 'http://files.example.com'
+          })
+        )
+        result = await apiService.getShortFormApplication('app1')
+      })
+
+      test('calls request.get with the correct path', () => {
+        expect(request.get.mock.calls[0]).toEqual(['/short-form/app1', null, true])
+      })
+
+      test('computes monthly_income from annual_income', () => {
+        expect(result.application.monthly_income).toBe('$10,000.00')
+      })
+
+      test('returns fileBaseUrl from the response', () => {
+        expect(result.fileBaseUrl).toBe('http://files.example.com')
+      })
+    })
+
+    describe('when annual_income is null', () => {
+      let result
+      beforeEach(async () => {
+        request.get = jest.fn(() =>
+          Promise.resolve({
+            application: { id: 'app2', annual_income: null, monthly_income: 5000 },
+            file_base_url: 'http://files.example.com'
+          })
+        )
+        result = await apiService.getShortFormApplication('app2')
+      })
+
+      test('computes annual_income from monthly_income', () => {
+        expect(result.application.annual_income).toBe('$60,000.00')
+      })
+    })
+
+    describe('when annual_income is undefined', () => {
+      let result
+      beforeEach(async () => {
+        request.get = jest.fn(() =>
+          Promise.resolve({
+            application: { id: 'app3', monthly_income: 2000 },
+            file_base_url: 'http://files.example.com'
+          })
+        )
+        result = await apiService.getShortFormApplication('app3')
+      })
+
+      test('computes annual_income from monthly_income', () => {
+        expect(result.application.annual_income).toBe('$24,000.00')
+      })
+    })
+
+    describe('when annual_income and monthly_income are both null', () => {
+      let result
+      beforeEach(async () => {
+        request.get = jest.fn(() =>
+          Promise.resolve({
+            application: { id: 'app-null', annual_income: null, monthly_income: null },
+            file_base_url: 'http://files.example.com'
+          })
+        )
+        result = await apiService.getShortFormApplication('app-null')
+      })
+
+      test('sets monthly_income and annual_income to None', () => {
+        expect(result.application.monthly_income).toBe('None')
+        expect(result.application.annual_income).toBe('None')
+      })
+    })
+
+    describe('when annual_income produces a repeating decimal when divided by 12', () => {
+      let result
+      beforeEach(async () => {
+        request.get = jest.fn(() =>
+          Promise.resolve({
+            application: { id: 'app4', annual_income: 100, monthly_income: null },
+            file_base_url: 'http://files.example.com'
+          })
+        )
+        result = await apiService.getShortFormApplication('app4')
+      })
+
+      test('monthly_income does not extend past two decimal places', () => {
+        // 100 / 12 = 8.3333..., formatCurrency should limit to 2 decimal places
+        expect(result.application.monthly_income).toMatch(/^\$[\d,]+(\.\d{1,2})?$/)
+      })
+    })
+
+    describe('when monthly_income produces more than two decimal places when multiplied by 12', () => {
+      let result
+      beforeEach(async () => {
+        request.get = jest.fn(() =>
+          Promise.resolve({
+            application: { id: 'app5', annual_income: null, monthly_income: 100 / 3 },
+            file_base_url: 'http://files.example.com'
+          })
+        )
+        result = await apiService.getShortFormApplication('app5')
+      })
+
+      test('annual_income does not extend past two decimal places', () => {
+        // (100 / 3) * 12 = 400, but fractional monthly values can yield decimals
+        expect(result.application.annual_income).toMatch(/^\$[\d,]+(\.\d{1,2})?$/)
+      })
+    })
+
+    describe('when the request fails', () => {
+      test('propagates the error', async () => {
+        request.get = mockFailedRequest
+        let errorCaught = false
+        await apiService.getShortFormApplication('app1').catch(() => {
+          errorCaught = true
+        })
+        expect(errorCaught).toBeTruthy()
+      })
+    })
+  })
+
+  describe('updateListing', () => {
+    beforeAll(() => {
+      request.put = mockPutRequest
+    })
+    test('should send a put request with expected format', async () => {
+      const listingId = 'listing_id'
+      const listing = {
+        id: listingId,
+        file_upload_url: 'https://sf.gov'
+      }
+      const expectedData = { listing }
+
+      const result = await apiService.updateListing(listing)
+      expect(result).toBe(true)
+      expect(mockPutRequest.mock.calls).toHaveLength(1)
+      expect(mockPutRequest.mock.calls[0]).toEqual([`/listings/${listingId}`, expectedData, true])
     })
   })
 })

@@ -3,26 +3,33 @@
 A portal for leasing agents, sales agents, and developers to manage listings and applications.
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/9e8566f1a7a92c4eca3e/maintainability)](https://codeclimate.com/github/SFDigitalServices/sf-dahlia-lap/maintainability)
+[![QLTY Maintainability](https://qlty.sh/badges/3497c285-f114-41d4-aba0-f04ba7425a9c/maintainability.svg)](https://qlty.sh/gh/SFDigitalServices/projects/sf-dahlia-lap)
 
 Only showing rspec tests for now:
 [![Test Coverage](https://api.codeclimate.com/v1/badges/9e8566f1a7a92c4eca3e/test_coverage)](https://codeclimate.com/github/SFDigitalServices/sf-dahlia-lap/test_coverage)
+[![QLTY Code Coverage](https://qlty.sh/badges/3497c285-f114-41d4-aba0-f04ba7425a9c/test_coverage.svg)](https://qlty.sh/gh/SFDigitalServices/projects/sf-dahlia-lap)
 
 Cross-browser testing done with <a href="https://www.browserstack.com/"><img src="./Browserstack-logo@2x.png?raw=true" height="36" ></a>
 
 ## Setup
 
-- Use Ruby 3.1.3 (Set the version using [RVM](https://rvm.io/rvm/install) or [rbenv](https://github.com/rbenv/rbenv))
+- Use Ruby 3.4.1 (Set the version using [RVM](https://rvm.io/rvm/install) or [rbenv](https://github.com/rbenv/rbenv))
 - Install [Bundler](https://github.com/bundler/bundler) `gem install bundler`
-- Use Node v18.12.x (npm v8.19.2)
-- Install Yarn (if you have Homebrew you can run `brew install yarn`)
-- Run `yarn install`
+- Use Node v22.13.x (npm v10.9.2)
+- Install pnpm (if you have Homebrew you can run `brew install pnpm`)
+- Run `pnpm install`
 - Run `bundle install`
+
   - see [here](https://stackoverflow.com/a/19850273/260495) if you have issues installing `pg` gem with Postgres.app, you may need to use: `gem install pg -v 0.21.0 -- --with-pg-config=/Applications/Postgres.app/Contents/Versions/latest/bin/pg_config`
   - if you need to run this command make sure you run `bundle install` again following the success of the postgres installation to install the remaining gems
 
-* Run `overcommit --install`
-* Create a `.env` file in the root directory and ask a team member for access to the local development secrets
-* Setup your local database by running `bin/rails db:migrate RAILS_ENV=development`
+- Run `overcommit --install`
+- Create a `.env` file in the root directory and ask a team member for access to the local development secrets
+- Setup your local database by running `bin/rails db:migrate RAILS_ENV=development`
+
+### Migrating from Yarn to pnpm
+
+When migrating from yarn to pnpm for the first time, remove the node_modules directory `rm -rf package-lock.json node_modules` and then run `pnpm install`
 
 ### VSCode setup
 
@@ -38,7 +45,7 @@ Necessary configs are defined in [.vscode/settings.json](.vscode/settings.json).
 
 ## To run server and client concurrently
 
-- `yarn start`
+- `pnpm start`
 - Access the app at [http://localhost:3000/](http://localhost:3000/)
 
 ## To update CSS from Pattern Library
@@ -47,13 +54,29 @@ Necessary configs are defined in [.vscode/settings.json](.vscode/settings.json).
 - Run `npm start` in your pattern lib directory
 - In a separate tab, change to the partners directory and run `grunt`
 
+## Icons
+
+The icons are from [sf-dahlia-pattern-library](https://github.com/SFDigitalServices/sf-dahlia-pattern-library).
+Instructions for how to add icons is documented there. It is copied/pasted below for convenience.
+
+We use icons from icomoon.io. To add new icons:
+
+1. Go to <https://icomoon.io/app/>
+1. Click "import icons" and upload the current [selections.json](https://github.com/SFDigitalServices/sf-dahlia-pattern-library/blob/main/public/toolkit/icons/icomoon/selection.json)
+1. Select any new icons you want to add
+1. Click "Generate SVG and more" on the bottom bar, then click download using the default settings
+1. Replace the current [icomoon folder](https://github.com/SFDigitalServices/sf-dahlia-pattern-library/tree/main/public/toolkit/icons/icomoon) with the unzipped folder you just downloaded
+1. Copy and paste the new symbols from [demo.html](https://github.com/SFDigitalServices/sf-dahlia-pattern-library/blob/main/public/toolkit/icons/icomoon/demo.html) into [\_icons.html](https://github.com/SFDigitalServices/sf-dahlia-pattern-library/blob/main/components/_icons.html)
+
+To use the new icons in Partners, replace the [layouts/\_icons.html](https://github.com/SFDigitalServices/sf-dahlia-lap/blob/main/app/views/layouts/_icons.html) file with the content of [\_icons.html](https://github.com/SFDigitalServices/sf-dahlia-pattern-library/blob/main/components/_icons.html)
+
 ## Linting
 
 To lint Ruby code run: `rubocop`
 
-To lint the React code run: `yarn lint`
+To lint the React code run: `pnpm lint`
 
-To fix any auto-fixable linting errors run: `yarn lint:fix`
+To fix any auto-fixable linting errors run: `pnpm lint:fix`
 
 ## Visual Studio setup
 
@@ -101,45 +124,50 @@ spec/vcr/listings/applications_controller/index.yml
 
 Then re-run your test. **Be aware that now that request in your test will actually be run.** A new cassette will be automatically generated recording that new run of the request, and then subsequent runs of the test will use that recorded cassette for the request.
 
+**Notice:** You should update cassettes against full. The data in QA is not up to date and tests will fail.
+
 ## React/Javascript tests
 
 ### Running unit tests
 
-`yarn unit`
+`pnpm unit`
 
 **Updating snapshots**
 
 If you made a legitimate change in the view and a snapshot fails then you have to tell Jest to update the snapshots. Run:
 
-`yarn unit -u`
+`pnpm unit -u`
 
 _Note: Snapshots should be pushed to the repo_
 
 ### Running e2e tests
 
-To run the E2E tests in a headless state, run `yarn e2e`
+To run the E2E tests in a headless state, run `pnpm e2e`
 
-If you want to use the Cypress UI to view the tests, you can run `yarn e2e:open`
+If you want to use the Cypress UI to view the tests, you can run `pnpm e2e:open`
 
-_Note: The app should also be running (using `yarn start`) in another terminal when you run the e2e tests_
+_Note: The app should also be running (using `pnpm start`) in another terminal when you run the e2e tests_
 
 #### Run server and client concurrently (in a terminal window)
 
-`yarn start`
+`pnpm start`
 
 #### Run tests (in another terminal window)
 
-`yarn e2e`
+`pnpm e2e`
 
-### Running all or individual tests
+### Qlty
 
-To run all tests (unit and e2e):
+[Qlty](https://qlty.sh) was spun out of Code Climate to focus on code quality checks.
+Qlty provides a cli to run checks locally.
 
-`yarn test:all`
+- Install the CLI: `curl https://qlty.sh | sh`
+- [CLI Quickstart](https://docs.qlty.sh/cli/quickstart)
 
-To run an individual test:
+### Dependency vulnerabilities
 
-`yarn test:all path/to/test`
+- Run `pnpm audit` to scan the project's dependencies for known security vulnerabilities.
+- `pnpm audit --fix=override` will attempt to resolve security issues by automatically applying overrides in the workspace or updating packages in the lockfile.
 
 ### Writing unit tests with React Testing Library
 
@@ -185,7 +213,7 @@ More documentation for how these scripts are used during a release in the [partn
 
 #### 1. create_release_branch
 
-Command: `yarn create_release_branch`
+Command: `pnpm create_release_branch`
 
 This script will:
 
@@ -195,9 +223,9 @@ This script will:
 
 #### 2. print_release_info
 
-Command: `yarn print_release_info -u <github-username> -t <github-access-token>`
+Command: `pnpm print_release_info -u <github-username> -t <github-access-token>`
 
-Instructions for how to get your github access token are printed by running `yarn print_release_info -h`
+Instructions for how to get your github access token are printed by running `pnpm print_release_info -h`
 
 This script will:
 

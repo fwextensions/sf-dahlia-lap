@@ -2,22 +2,18 @@
 /* eslint-disable jest/no-conditional-expect */
 import React from 'react'
 
-import { within, screen, fireEvent, act, waitFor } from '@testing-library/react'
-import { useFlag as useFlagUnleash, useFlagsStatus } from '@unleash/proxy-client-react'
+import { cleanup, within, screen, fireEvent, act, waitFor } from '@testing-library/react'
 
 import { renderAppWithUrl } from '../../testUtils/wrapperUtil'
 
 jest.mock('@unleash/proxy-client-react')
 
-useFlagUnleash.mockImplementation(() => false)
-useFlagsStatus.mockImplementation(() => ({
-  flagsError: false,
-  flagsReady: true
-}))
-
 const mockGetLeaseUpListing = jest.fn()
-const mockFetchLeaseUpApplications = jest.fn()
+const mockFetchLeaseUpApplicationsPagination = jest.fn()
 const mockCreateFieldUpdateComment = jest.fn()
+const mockUpdateListing = jest.fn()
+const mockUpdateApplication = jest.fn()
+const mockSendInvite = jest.fn()
 
 jest.mock('apiService', () => {
   return {
@@ -25,8 +21,8 @@ jest.mock('apiService', () => {
       mockGetLeaseUpListing(id)
       return Promise.resolve({ ...mockListing })
     },
-    fetchLeaseUpApplications: async (listingId, page, filters) => {
-      mockFetchLeaseUpApplications(listingId, page, filters)
+    fetchLeaseUpApplicationsPagination: async (listingId, page, filters) => {
+      mockFetchLeaseUpApplicationsPagination(listingId, page, filters)
       return Promise.resolve({ records: mockApplications })
     },
     createFieldUpdateComment: async (applicationId, status, comment, substatus) => {
@@ -37,7 +33,52 @@ jest.mock('apiService', () => {
       }
 
       return Promise.resolve(mockApplications)
+    },
+    updateApplication: async (application) => {
+      mockUpdateApplication(application)
+      return Promise.resolve(true)
+    },
+    updateListing: async (listing) => {
+      mockUpdateListing(listing)
+      return Promise.resolve(true)
+    },
+    sendInvite: async (listing, appIds, deadline, exampleEmail) => {
+      mockSendInvite(listing, appIds, deadline, exampleEmail)
+      if (exampleEmail && exampleEmail.includes('FAIL')) {
+        return Promise.reject(new Error('rejected promise'))
+      }
+      return Promise.resolve(true)
     }
+  }
+})
+
+jest.mock('utils/hooks/useFeatureFlag', () => {
+  const i2iFeatureFlag = 'all.i2i'
+  const i2iVariant = {
+    enabled: true,
+    featureEnabled: true,
+    feature_enabled: true,
+    name: 'enabled_listings',
+    payload: {
+      type: 'json',
+      value: '{"enabled_listings": ["listingId"]}'
+    }
+  }
+
+  const defaultResponse = {
+    flagsReady: true,
+    unleashFlag: true,
+    variant: null
+  }
+
+  const i2iResponse = {
+    flagsReady: true,
+    unleashFlag: true,
+    variant: i2iVariant
+  }
+
+  return {
+    useFeatureFlag: (flagName) => (flagName === i2iFeatureFlag ? i2iResponse : defaultResponse)
   }
 })
 
@@ -104,7 +145,8 @@ const buildMockApplicationWithPreference = ({
   applicationId,
   prefOrder = 1,
   prefRank = 1,
-  customPreferenceType
+  customPreferenceType,
+  uploadUrl
 }) => ({
   id: prefId,
   processing_status: 'processing',
@@ -127,7 +169,8 @@ const buildMockApplicationWithPreference = ({
       last_name: `some last name ${prefId}`,
       phone: 'some phone',
       email: `some email ${prefId}`
-    }
+    },
+    upload_url: uploadUrl
   }
 })
 
@@ -135,7 +178,9 @@ const mockListing = {
   id: 'listingId',
   name: 'listingName',
   building_street_address: 'buildingAddress',
-  report_id: 'REPORT_ID'
+  report_id: 'REPORT_ID',
+  program_type: 'IH-RENTAL',
+  leaseup_outreach: 'Submit all info online'
 }
 
 const mockApplications = [
@@ -144,7 +189,8 @@ const mockApplications = [
     applicationId: '1001',
     prefOrder: '1',
     prefRank: '2',
-    customPreferenceType: 'V-COP'
+    customPreferenceType: 'V-COP',
+    uploadUrl: 'http://test.com'
   }),
   buildMockApplicationWithPreference({
     prefId: '2',
@@ -192,6 +238,11 @@ describe('LeaseUpApplicationsPage', () => {
     rtlWrapper = await getWrapper()
   })
 
+  afterEach(() => {
+    cleanup()
+    jest.clearAllMocks()
+  })
+
   test('should match the snapshot', async () => {
     expect(rtlWrapper.asFragment()).toMatchSnapshot()
   })
@@ -202,9 +253,9 @@ describe('LeaseUpApplicationsPage', () => {
   })
 
   test('calls get applications with the listing id and page number = 0', () => {
-    expect(mockFetchLeaseUpApplications.mock.calls).toHaveLength(2)
-    expect(mockFetchLeaseUpApplications.mock.calls[0][0]).toEqual(mockListing.id)
-    expect(mockFetchLeaseUpApplications.mock.calls[0][1]).toBe(0)
+    expect(mockFetchLeaseUpApplicationsPagination.mock.calls).toHaveLength(1)
+    expect(mockFetchLeaseUpApplicationsPagination.mock.calls[0][0]).toEqual(mockListing.id)
+    expect(mockFetchLeaseUpApplicationsPagination.mock.calls[0][1]).toBe(0)
   })
 
   test('it is not loading', () => {
@@ -225,7 +276,7 @@ describe('LeaseUpApplicationsPage', () => {
   test('should render accessibility requests when present', async () => {
     expect(
       screen.getByRole('row', {
-        name: /cop 2 application name 1001 some first name 1 some last name 1 vision 04\/26\/2018 processing/i
+        name: /v-cop 2 application name 1001 some first name 1 some last name 1 vision 04\/26\/2018 outreach/i
       })
     ).toBeInTheDocument()
   })
@@ -241,7 +292,7 @@ describe('LeaseUpApplicationsPage', () => {
 
   test('status modal can be opened and closed', () => {
     const firstRow = screen.getByRole('row', {
-      name: /cop 2 application name 1001 some first name 1 some last name 1 vision 04\/26\/2018 processing/i
+      name: /v-cop 2 application name 1001 some first name 1 some last name 1 vision 04\/26\/2018 outreach/i
     })
     expect(within(firstRow).getByRole('button')).toBeInTheDocument()
 
@@ -270,7 +321,7 @@ describe('LeaseUpApplicationsPage', () => {
   test('updates substatus and last updated date on status change', async () => {
     // Get the status last updated date before we change it, to verify that it changed.
     const firstRow = screen.getByRole('row', {
-      name: /cop 2 application name 1001 some first name 1 some last name 1 vision 04\/26\/2018 processing/i
+      name: /v-cop 2 application name 1001 some first name 1 some last name 1 vision 04\/26\/2018 outreach/i
     })
 
     // Change status to Appealed and open up the modal
@@ -307,6 +358,14 @@ describe('LeaseUpApplicationsPage', () => {
         .queryAllByRole('checkbox')
         .filter((checkbox) => checkbox.id.includes('bulk-action-checkbox-'))
 
+    let leaseUpApplicationsFilterContainer
+
+    beforeEach(() => {
+      leaseUpApplicationsFilterContainer = screen.getByTestId(
+        'lease-up-applications-filter-container'
+      )
+    })
+
     describe('initial load state without boxes checked', () => {
       test('the bulk input box is unchecked and not indeterminate', () => {
         const checkbox = getBulkEditCheckbox()
@@ -321,13 +380,9 @@ describe('LeaseUpApplicationsPage', () => {
       })
 
       test('the bulk status button is disabled', () => {
-        const leaseUpApplicationsFilterContainer = screen.getByTestId(
-          'lease-up-applications-filter-container'
-        )
-        expect(within(leaseUpApplicationsFilterContainer).getByRole('combobox')).toHaveAttribute(
-          'data-disabled',
-          'true'
-        )
+        expect(
+          within(leaseUpApplicationsFilterContainer).getAllByRole('combobox')[0]
+        ).toHaveAttribute('data-disabled', 'true')
       })
     })
 
@@ -358,6 +413,10 @@ describe('LeaseUpApplicationsPage', () => {
         expect(screen.getAllByRole('combobox')[0]).toBeEnabled()
       })
 
+      test('the invite to apply email is enabled', () => {
+        expect(screen.getAllByRole('combobox')[1]).toBeEnabled()
+      })
+
       describe('when all row checkboxes with unique IDs are clicked individually', () => {
         beforeEach(() => {
           const ids = [1002, 1003, 1004, 1005]
@@ -377,14 +436,9 @@ describe('LeaseUpApplicationsPage', () => {
 
           expect(getBulkEditCheckbox(rtlWrapper)).not.toHaveClass('indeterminate')
           // Since we are now mocking react-select, this is no longer true in the tests.
-
-          const leaseUpApplicationsFilterContainer = screen.getByTestId(
-            'lease-up-applications-filter-container'
-          )
-          expect(within(leaseUpApplicationsFilterContainer).getByRole('combobox')).toHaveAttribute(
-            'data-disabled',
-            'false'
-          )
+          expect(
+            within(leaseUpApplicationsFilterContainer).getAllByRole('combobox')[0]
+          ).toHaveAttribute('data-disabled', 'false')
         })
       })
     })
@@ -419,24 +473,20 @@ describe('LeaseUpApplicationsPage', () => {
       test('the bulk status button is enabled', () => {
         // Since we are mocking react-select, we have to check this mock attribute
         // The first combobox is the bulk status button
-        const leaseUpApplicationsFilterContainer = screen.getByTestId(
-          'lease-up-applications-filter-container'
-        )
-        expect(within(leaseUpApplicationsFilterContainer).getByRole('combobox')).toHaveAttribute(
-          'data-disabled',
-          'false'
-        )
+        expect(
+          within(leaseUpApplicationsFilterContainer).getAllByRole('combobox')[0]
+        ).toHaveAttribute('data-disabled', 'false')
       })
 
       describe('when the set status button value changes', () => {
         beforeEach(() => {
-          const leaseUpApplicationsFilterContainer = screen.getByTestId(
-            'lease-up-applications-filter-container'
-          )
           act(() => {
-            fireEvent.change(within(leaseUpApplicationsFilterContainer).getByRole('combobox'), {
-              target: { value: 'Appealed' }
-            })
+            fireEvent.change(
+              within(leaseUpApplicationsFilterContainer).getAllByRole('combobox')[0],
+              {
+                target: { value: 'Appealed' }
+              }
+            )
           })
         })
 
@@ -510,13 +560,9 @@ describe('LeaseUpApplicationsPage', () => {
       })
 
       test('the bulk status button is enabled', () => {
-        const leaseUpApplicationsFilterContainer = screen.getByTestId(
-          'lease-up-applications-filter-container'
-        )
-        expect(within(leaseUpApplicationsFilterContainer).getByRole('combobox')).toHaveAttribute(
-          'data-disabled',
-          'false'
-        )
+        expect(
+          within(leaseUpApplicationsFilterContainer).getAllByRole('combobox')[0]
+        ).toHaveAttribute('data-disabled', 'false')
       })
 
       describe('when the top-level checkbox is clicked again', () => {
@@ -534,13 +580,9 @@ describe('LeaseUpApplicationsPage', () => {
             expect(checkbox).not.toBeChecked()
           })
 
-          const leaseUpApplicationsFilterContainer = screen.getByTestId(
-            'lease-up-applications-filter-container'
-          )
-          expect(within(leaseUpApplicationsFilterContainer).getByRole('combobox')).toHaveAttribute(
-            'data-disabled',
-            'true'
-          )
+          expect(
+            within(leaseUpApplicationsFilterContainer).getAllByRole('combobox')[0]
+          ).toHaveAttribute('data-disabled', 'true')
         })
       })
 
@@ -570,13 +612,9 @@ describe('LeaseUpApplicationsPage', () => {
         })
 
         test('the bulk status button is enabled', () => {
-          const leaseUpApplicationsFilterContainer = screen.getByTestId(
-            'lease-up-applications-filter-container'
-          )
-          expect(within(leaseUpApplicationsFilterContainer).getByRole('combobox')).toHaveAttribute(
-            'data-disabled',
-            'false'
-          )
+          expect(
+            within(leaseUpApplicationsFilterContainer).getAllByRole('combobox')[0]
+          ).toHaveAttribute('data-disabled', 'false')
         })
 
         describe('when the first checkbox is clicked again', () => {
@@ -592,11 +630,8 @@ describe('LeaseUpApplicationsPage', () => {
             getRowBulkCheckboxInputs().forEach((checkbox) => {
               expect(checkbox).toBeChecked()
             })
-            const leaseUpApplicationsFilterContainer = screen.getByTestId(
-              'lease-up-applications-filter-container'
-            )
             expect(
-              within(leaseUpApplicationsFilterContainer).getByRole('combobox')
+              within(leaseUpApplicationsFilterContainer).getAllByRole('combobox')[0]
             ).toHaveAttribute('data-disabled', 'false')
           })
         })
@@ -616,11 +651,8 @@ describe('LeaseUpApplicationsPage', () => {
               expect(checkbox).not.toBeChecked()
             })
 
-            const leaseUpApplicationsFilterContainer = screen.getByTestId(
-              'lease-up-applications-filter-container'
-            )
             expect(
-              within(leaseUpApplicationsFilterContainer).getByRole('combobox')
+              within(leaseUpApplicationsFilterContainer).getAllByRole('combobox')[0]
             ).toHaveAttribute('data-disabled', 'true')
           })
         })
@@ -651,6 +683,450 @@ describe('LeaseUpApplicationsPage', () => {
         test('all rows are unchecked', () => {
           getRowBulkCheckboxInputs().forEach((checkbox, idx) => {
             expect(checkbox).not.toBeChecked()
+          })
+        })
+      })
+    })
+
+    describe('when using i2x', () => {
+      beforeEach(() => {
+        act(() => {
+          fireEvent.click(getRowBulkCheckboxInputs()[0])
+          fireEvent.click(getRowBulkCheckboxInputs()[1])
+        })
+      })
+
+      describe('when setting up i2a', () => {
+        beforeEach(() => {
+          act(() => {
+            fireEvent.change(
+              within(leaseUpApplicationsFilterContainer).getAllByRole('combobox')[1],
+              {
+                target: { value: 'i2a' }
+              }
+            )
+          })
+        })
+
+        test('the document upload url should open', () => {
+          expect(screen.getByText('Add document upload URL')).toBeInTheDocument()
+        })
+
+        test('the modal should close', () => {
+          act(() => {
+            fireEvent.click(screen.getByText('Close'))
+          })
+          expect(screen.queryByText('Add document upload URL')).not.toBeInTheDocument()
+        })
+
+        test('the flow', async () => {
+          // invalid document upload url
+          const documentUrlField = screen.getByLabelText('Document upload URL')
+          act(() => {
+            fireEvent.change(documentUrlField, {
+              target: { value: 'hello world!' }
+            })
+            fireEvent.blur(documentUrlField)
+          })
+          expect(screen.getByText('Please enter a valid URL')).toBeInTheDocument()
+
+          // valid document upload url
+          act(() => {
+            fireEvent.change(documentUrlField, {
+              target: { value: 'https://sf.gov' }
+            })
+            fireEvent.blur(documentUrlField)
+          })
+          expect(screen.queryByText('Please enter a valid URL')).not.toBeInTheDocument()
+
+          // open document submission deadline
+          act(() => {
+            fireEvent.click(screen.getByText('next'))
+          })
+          expect(screen.getByText('Set response deadline')).toBeInTheDocument()
+
+          // invalid submission deadline date
+          const documentUrlFieldMonth = screen.getByPlaceholderText('MM')
+          const documentUrlFieldDay = screen.getByPlaceholderText('DD')
+          const documentUrlFieldYear = screen.getByPlaceholderText('YYYY')
+          act(() => {
+            fireEvent.change(documentUrlFieldMonth, {
+              target: { value: '1' }
+            })
+            fireEvent.change(documentUrlFieldDay, {
+              target: { value: '1' }
+            })
+            fireEvent.change(documentUrlFieldYear, {
+              target: { value: '2000' }
+            })
+            fireEvent.blur(documentUrlFieldMonth)
+            fireEvent.blur(documentUrlFieldDay)
+            fireEvent.blur(documentUrlFieldYear)
+          })
+          expect(documentUrlFieldMonth).toHaveClass('error')
+          expect(documentUrlFieldDay).toHaveClass('error')
+          expect(documentUrlFieldYear).toHaveClass('error')
+
+          // valid submission deadline date
+          act(() => {
+            fireEvent.change(documentUrlFieldYear, {
+              target: { value: '3000' }
+            })
+            fireEvent.blur(documentUrlFieldMonth)
+            fireEvent.blur(documentUrlFieldDay)
+            fireEvent.blur(documentUrlFieldYear)
+          })
+          expect(documentUrlFieldMonth).not.toHaveClass('error')
+          expect(documentUrlFieldDay).not.toHaveClass('error')
+          expect(documentUrlFieldYear).not.toHaveClass('error')
+
+          // save invite to apply input
+          act(() => {
+            fireEvent.click(screen.getByText('save'))
+          })
+          expect(screen.getByText('Review and send')).toBeInTheDocument()
+
+          // open send example modal
+          act(() => {
+            fireEvent.click(screen.getByText('send yourself an example email'))
+          })
+          expect(screen.getByText('See an example email')).toBeInTheDocument()
+
+          // invalid email
+          const emailField = screen.getByLabelText('Email address')
+          act(() => {
+            fireEvent.change(emailField, {
+              target: { value: 'hello world!' }
+            })
+            fireEvent.blur(emailField)
+          })
+          expect(screen.getByText('Enter email address like: example@web.com')).toBeInTheDocument()
+
+          // valid email
+          act(() => {
+            fireEvent.change(emailField, {
+              target: { value: 'test@test.com' }
+            })
+            fireEvent.blur(emailField)
+          })
+          expect(
+            screen.queryByText('Enter email address like: example@web.com')
+          ).not.toBeInTheDocument()
+
+          // send example email
+          act(() => {
+            fireEvent.click(screen.getByText('send example email'))
+          })
+          await waitFor(() => {
+            expect(mockSendInvite.mock.calls).toHaveLength(1)
+            expect(screen.queryByText('send example email')).not.toBeInTheDocument()
+            expect(screen.getByText('done')).toBeInTheDocument()
+          })
+
+          // close send example modal
+          act(() => {
+            fireEvent.click(screen.getByText('done'))
+          })
+          expect(screen.queryByText('See an example email')).not.toBeInTheDocument()
+          expect(screen.getByText('Review and send')).toBeInTheDocument()
+
+          // go back to deadline modal
+          act(() => {
+            fireEvent.click(screen.getByTestId('edit-deadline-link'))
+          })
+          expect(screen.getByText('Set response deadline')).toBeInTheDocument()
+          act(() => {
+            fireEvent.click(screen.getByText('save'))
+          })
+          expect(screen.getByText('Review and send')).toBeInTheDocument()
+
+          // send email
+          act(() => {
+            fireEvent.click(screen.getByText('send now'))
+          })
+          await waitFor(() => {
+            // two apps were selected.  saved when sending example email and saved just now. 2*2=4
+            expect(mockUpdateApplication.mock.calls).toHaveLength(4)
+            expect(mockSendInvite.mock.calls).toHaveLength(2)
+          })
+
+          // deadline and upload urls should be skipped since
+          // they've previously been set
+          act(() => {
+            fireEvent.change(
+              within(leaseUpApplicationsFilterContainer).getAllByRole('combobox')[1],
+              {
+                target: { value: 'i2a' }
+              }
+            )
+          })
+          expect(screen.queryByText('Please enter a valid URL')).not.toBeInTheDocument()
+          expect(screen.queryByText('Set response deadline')).not.toBeInTheDocument()
+          expect(screen.getByText('Review and send')).toBeInTheDocument()
+        })
+
+        test('one url per application', async () => {
+          expect(screen.queryByText('Add document upload URL')).toBeInTheDocument()
+          act(() => {
+            fireEvent.click(screen.getByText('Or, add a unique URL for each application'))
+          })
+          expect(
+            screen.queryByText('Add a document upload URL for each applicant')
+          ).toBeInTheDocument()
+
+          // this returns 3 text inputs
+          // the first is search input, the remaining two are upload urls for the selected applications
+          const textInputs = screen.getAllByRole('textbox')
+
+          // check upload_url from salesforce is prepopulated
+          expect(textInputs[1].value).toBe('http://test.com')
+
+          // invalid url
+          act(() => {
+            fireEvent.change(textInputs[1], {
+              target: { value: 'hello world!' }
+            })
+            fireEvent.blur(textInputs[1])
+          })
+          expect(textInputs[1]).toHaveClass('error')
+
+          // valid url
+          act(() => {
+            fireEvent.change(textInputs[1], {
+              target: { value: 'http://www.sf.gov' }
+            })
+            fireEvent.blur(textInputs[1])
+          })
+          expect(textInputs[1]).not.toHaveClass('error')
+
+          // duplicate urls
+          act(() => {
+            fireEvent.change(textInputs[2], {
+              target: { value: 'http://www.sf.gov' }
+            })
+            fireEvent.blur(textInputs[2])
+          })
+          expect(textInputs[1]).toHaveClass('error')
+          expect(textInputs[2]).toHaveClass('error')
+
+          // unique urls
+          act(() => {
+            fireEvent.change(textInputs[2], {
+              target: { value: 'http://www.sf2.gov' }
+            })
+            fireEvent.blur(textInputs[2])
+          })
+          expect(textInputs[1]).not.toHaveClass('error')
+          expect(textInputs[2]).not.toHaveClass('error')
+
+          // save upload urls
+          act(() => {
+            fireEvent.click(screen.getByText('next'))
+          })
+
+          // fill out upload deadline
+          act(() => {
+            fireEvent.change(screen.getByPlaceholderText('MM'), {
+              target: { value: '1' }
+            })
+            fireEvent.change(screen.getByPlaceholderText('DD'), {
+              target: { value: '1' }
+            })
+            fireEvent.change(screen.getByPlaceholderText('YYYY'), {
+              target: { value: '3000' }
+            })
+            fireEvent.click(screen.getByText('save'))
+          })
+          expect(screen.queryByText('Multiple URLs')).toBeInTheDocument()
+
+          // go back to upload url modal from review modal
+          // verify that 1 Url per app is sticky
+          act(() => {
+            fireEvent.click(screen.getAllByText('Edit')[0])
+          })
+          expect(
+            screen.queryByText('Add a document upload URL for each applicant')
+          ).toBeInTheDocument()
+
+          // close and reopen i2a
+          // verify that 1 Url per app is sticky
+          act(() => {
+            fireEvent.click(screen.getByText('Close'))
+          })
+          act(() => {
+            fireEvent.change(
+              within(leaseUpApplicationsFilterContainer).getAllByRole('combobox')[1],
+              {
+                target: { value: 'i2a' }
+              }
+            )
+          })
+          expect(
+            screen.queryByText('Add a document upload URL for each applicant')
+          ).toBeInTheDocument()
+
+          // send invite to apply with 1 url per app setting
+          act(() => {
+            fireEvent.click(screen.getByText('next'))
+          })
+          act(() => {
+            // deadline modal should be skipped since it was previously entered
+            fireEvent.click(screen.getByText('send now'))
+          })
+          await waitFor(() => {
+            // two apps were selected
+            expect(mockUpdateApplication.mock.calls).toHaveLength(2)
+            expect(mockSendInvite.mock.calls).toHaveLength(1)
+            expect(getRowBulkCheckboxInputs()[0]).not.toBeChecked()
+            expect(getRowBulkCheckboxInputs()[1]).not.toBeChecked()
+          })
+
+          const updateCalls = mockUpdateApplication.mock.calls.map(([payload]) => payload)
+          expect(updateCalls).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                id: '1001',
+                upload_url: 'http://www.sf.gov'
+              }),
+              expect.objectContaining({
+                id: '1002',
+                upload_url: 'http://www.sf2.gov'
+              })
+            ])
+          )
+
+          expect(mockSendInvite).toHaveBeenCalledWith(
+            mockListing,
+            ['1001', '1002'],
+            '3000-1-1',
+            null
+          )
+
+          act(() => {
+            fireEvent.change(
+              within(leaseUpApplicationsFilterContainer).getAllByRole('combobox')[1],
+              {
+                target: { value: 'i2a' }
+              }
+            )
+            // switch back to single url for all applicants
+            fireEvent.click(screen.getByText('Or, use a single URL for all applicants'))
+          })
+          expect(screen.queryByText('Add document upload URL')).toBeInTheDocument()
+        })
+
+        test('should alert when api call to send invite fails', async () => {
+          const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {})
+
+          act(() => {
+            fireEvent.change(screen.getByLabelText('Document upload URL'), {
+              target: { value: 'https://sf.gov' }
+            })
+            fireEvent.click(screen.getByText('next'))
+          })
+          act(() => {
+            fireEvent.change(screen.getByPlaceholderText('MM'), {
+              target: { value: '1' }
+            })
+            fireEvent.change(screen.getByPlaceholderText('DD'), {
+              target: { value: '1' }
+            })
+            fireEvent.change(screen.getByPlaceholderText('YYYY'), {
+              target: { value: '3000' }
+            })
+            fireEvent.click(screen.getByText('save'))
+          })
+          act(() => {
+            fireEvent.click(screen.getByText('send yourself an example email'))
+          })
+          act(() => {
+            fireEvent.change(screen.getByLabelText('Email address'), {
+              target: { value: 'FAIL@test.com' }
+            })
+            fireEvent.click(screen.getByText('send example email'))
+          })
+          await waitFor(() => {
+            expect(alertSpy).toHaveBeenCalledTimes(1)
+          })
+        })
+      })
+
+      describe('when setting up i2i', () => {
+        beforeEach(async () => {
+          // i2i requires 'Appointments required' outreach; re-render with that listing.
+          cleanup()
+          mockListing.leaseup_outreach = 'Appointments required'
+          await act(async () => {
+            rtlWrapper = renderAppWithUrl(`/lease-ups/listings/${mockListing.id}`)
+          })
+          act(() => {
+            fireEvent.click(getRowBulkCheckboxInputs()[0])
+            fireEvent.click(getRowBulkCheckboxInputs()[1])
+          })
+          act(() => {
+            fireEvent.change(screen.getAllByRole('combobox')[1], {
+              target: { value: 'i2i' }
+            })
+          })
+        })
+
+        afterEach(() => {
+          mockListing.leaseup_outreach = 'Submit all info online'
+        })
+
+        test('the calendar upload url should open', () => {
+          expect(screen.getByText('Add scheduling link')).toBeInTheDocument()
+        })
+
+        test('saving the inputs', async () => {
+          const textInputs = screen.getAllByRole('textbox')
+
+          act(() => {
+            fireEvent.change(textInputs[1], {
+              target: { value: 'http://www.sf.gov' }
+            })
+            fireEvent.blur(textInputs[1])
+          })
+          expect(textInputs[1]).not.toHaveClass('error')
+
+          act(() => {
+            fireEvent.click(screen.getByText('next'))
+          })
+          expect(screen.getByText('Set response deadline')).toBeInTheDocument()
+
+          const documentUrlFieldMonth = screen.getByPlaceholderText('MM')
+          const documentUrlFieldDay = screen.getByPlaceholderText('DD')
+          const documentUrlFieldYear = screen.getByPlaceholderText('YYYY')
+          act(() => {
+            fireEvent.change(documentUrlFieldMonth, {
+              target: { value: '1' }
+            })
+            fireEvent.change(documentUrlFieldDay, {
+              target: { value: '1' }
+            })
+            fireEvent.change(documentUrlFieldYear, {
+              target: { value: '3000' }
+            })
+            fireEvent.blur(documentUrlFieldMonth)
+            fireEvent.blur(documentUrlFieldDay)
+            fireEvent.blur(documentUrlFieldYear)
+          })
+          expect(documentUrlFieldMonth).not.toHaveClass('error')
+          expect(documentUrlFieldDay).not.toHaveClass('error')
+          expect(documentUrlFieldYear).not.toHaveClass('error')
+
+          act(() => {
+            fireEvent.click(screen.getByText('save'))
+          })
+          expect(screen.getByText('Review and send')).toBeInTheDocument()
+
+          act(() => {
+            fireEvent.click(screen.getByText('send now'))
+          })
+          await waitFor(() => {
+            expect(mockUpdateApplication.mock.calls).toHaveLength(2)
+            expect(mockUpdateListing.mock.calls).toHaveLength(0)
+            expect(mockSendInvite.mock.calls).toHaveLength(1)
           })
         })
       })

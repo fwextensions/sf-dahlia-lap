@@ -4,6 +4,8 @@ import moment from 'moment'
 
 import { API_DATE_FORMAT } from 'utils/utils'
 
+const DATE_INPUT_FORMATS = ['YYYY-M-D', API_DATE_FORMAT]
+
 const run = (rules, values, ifRules) => {
   return mapValues(rules, (valFn, key) => {
     if (ifRules && ifRules[key]) {
@@ -30,7 +32,7 @@ const decorateValidator = (fn) => (message) => validates(fn, message)
 
 const isOldEnough = (dateOfBirth) => {
   if (dateOfBirth && isDate(dateOfBirth)) {
-    const years = moment().diff(moment(dateOfBirth.join('-'), API_DATE_FORMAT), 'years')
+    const years = moment().diff(moment(dateOfBirth.join('-'), DATE_INPUT_FORMATS, true), 'years')
     return years >= 18
   } else {
     return false
@@ -43,9 +45,19 @@ const isDate = (date) => {
     if (date[0] < 1900) return false
     // Check that the date is valid
     const dateString = date.join('-')
-    return moment(dateString, 'YYYY-M-D', true).isValid()
+    return moment(dateString, DATE_INPUT_FORMATS, true).isValid()
   } else {
     return true
+  }
+}
+
+const isFutureDate = (date) => {
+  // date is not today and not in the past
+  if (isDate(date)) {
+    const d = moment(date.join('-'), DATE_INPUT_FORMATS, true).endOf('day')
+    return d.isAfter(moment().endOf('day'))
+  } else {
+    return false
   }
 }
 
@@ -64,6 +76,11 @@ const isValidEmail = (email) => {
 }
 
 const isEmptyString = (value) => isNil(value) || value.length === 0
+
+const isValidEmailStrict = (email) => {
+  // does not allow for empty string
+  return isEmptyString(email) ? false : isValidEmail(email)
+}
 
 export const isValidCurrency = (value) => {
   if (isEmptyString(value)) {
@@ -104,14 +121,28 @@ const isPresent = (value) => {
   return Array.isArray(value) ? !isEmpty(compact(value)) : !!value
 }
 
+const isValidUrl = (value) => {
+  try {
+    const urlValue = value.trim()
+    if (/\s/.test(urlValue)) return false // URLs cannot contain spaces
+    const url = new URL(urlValue)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch (err) {
+    return false
+  }
+}
+
 validate.isValidEmail = decorateValidator(isValidEmail)
+validate.isValidEmailStrict = decorateValidator(isValidEmailStrict)
 validate.isOldEnough = decorateValidator(isOldEnough)
 validate.isDate = decorateValidator(isDate)
+validate.isFutureDate = decorateValidator(isFutureDate)
 validate.isValidCurrency = decorateValidator(isValidCurrency)
 validate.isValidPercent = decorateValidator(isValidPercent)
 validate.isUnderMaxValue = (maxVal) => decorateValidator(isUnderMaxValue(maxVal))
 validate.isPresent = decorateValidator(isPresent)
 validate.isChecked = decorateValidator(isChecked)
+validate.isValidUrl = decorateValidator(isValidUrl)
 validate.list = (fn) => (list) => map(list, fn)
 validate.any =
   (...fns) =>

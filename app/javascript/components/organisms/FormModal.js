@@ -43,9 +43,9 @@ const FormModalBody = ({
             onSubmit={onSubmit}
             validate={validateError}
             {...(initialValues ? { initialValues } : {})}
-            render={({ handleSubmit, values, form: { change } }) => (
+            render={({ handleSubmit, values, form: { change }, form }) => (
               <form onSubmit={handleSubmit} className='no-margin' noValidate>
-                <Modal.Content>{children(values, change)}</Modal.Content>
+                <Modal.Content>{children(values, change, form)}</Modal.Content>
                 <Modal.Footer>
                   <div className='modal-button_item modal-button_primary'>
                     <button className={primaryButtonClassName} type='submit'>
@@ -67,14 +67,12 @@ const FormModalBody = ({
   )
 }
 
-const FormModal = ({ children, isOpen, handleClose, ...FormModalBodyProps }) => {
-  return (
-    <Modal isOpen={isOpen} handleClose={handleClose}>
-      <FormModalBody handleClose={handleClose} {...FormModalBodyProps}>
-        {children}
-      </FormModalBody>
-    </Modal>
-  )
-}
+const FormModal = ({ children, isOpen, handleClose, styleType, ...FormModalBodyProps }) => (
+  <Modal isOpen={isOpen} handleClose={handleClose} styleType={styleType}>
+    <FormModalBody handleClose={handleClose} {...FormModalBodyProps}>
+      {children}
+    </FormModalBody>
+  </Modal>
+)
 
 export default FormModal

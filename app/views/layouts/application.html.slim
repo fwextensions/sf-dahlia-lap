@@ -30,14 +30,22 @@ html
     / include toolkit.css and other CSS overrides
     == stylesheet_link_tag "application", :media => 'all'
     == csrf_meta_tags
+
   body
     .site-container
-      header
+      - if ENV['BANNER_ALERT']
+        section
+          == render 'layouts/banner_alert'
+      - if @show_invite_to_apply_feedback_banner
+        section
+          == render 'layouts/banner_invite_to_apply_feedback'
+      section
         == render 'layouts/navigation'
       section#root
         == render 'layouts/messages'
         == yield
     == render 'layouts/icons'
+    == render 'layouts/custom_icons'
 
     javascript:
       var SALESFORCE_BASE_URL = "#{{current_user&.admin ? ENV['SALESFORCE_INSTANCE_URL'] : ENV['COMMUNITY_LOGIN_URL']}}"

@@ -2,7 +2,8 @@ import {
   bulkActionCheckboxId,
   statusMenuItemSelector,
   nthRowStatusDropdownSelector,
-  usingFixtures
+  usingFixtures,
+  interceptInviteToApplyFlag
 } from '../../support/utils'
 
 const firstRowStatusDropdown = '.rt-tr-group:first-child .rt-td .dropdown .dropdown-button'
@@ -17,31 +18,41 @@ const THIRD_ROW_LEASE_UP_APP_ID = Cypress.env('THIRD_ROW_LEASE_UP_APP_ID')
 
 describe('LeaseUpApplicationsPage status update', () => {
   beforeEach(() => {
-    if (usingFixtures()) {
-      cy.intercept('api/v1/lease-ups/listings/**', { fixture: 'leaseUpListing.json' }).as(
-        'leaseUpListing'
-      )
-      cy.intercept(`api/v1/lease-ups/applications?listing_id=${LEASE_UP_LISTING_ID}`, {
-        fixture: 'leaseUpApplications.json'
-      }).as('leaseUpApplications')
-      cy.intercept('api/v1/applications/**/field_update_comments', {
-        fixture: 'fieldUpdateComments.json'
-      }).as('fieldUpdateComments')
-    } else {
-      cy.intercept('api/v1/lease-ups/listings/**').as('leaseUpListing')
-      cy.intercept('api/v1/lease-ups/applications?listing_id=**').as('leaseUpApplications')
-      cy.intercept('api/v1/applications/**/field_update_comments').as('fieldUpdateComments')
-    }
+    // there wasn't an easy way to hide invite-to-apply substatuses behind a feature flag,
+    //   so we treat the listing as invite-to-apply to be able to test all substatuses
+    interceptInviteToApplyFlag(LEASE_UP_LISTING_ID)
+    cy.viewport(1920, 1920) // larger viewport fixes a flaky issue where modals will not appear on click
   })
   describe('using the individual row status dropdown', () => {
+    beforeEach(() => {
+      if (usingFixtures()) {
+        cy.intercept('api/v1/lease-ups/listings/**', { fixture: 'leaseUpListing.json' }).as(
+          'leaseUpListing'
+        )
+        cy.intercept(`api/v1/lease-ups/applications?listing_id=${LEASE_UP_LISTING_ID}**`, {
+          fixture: 'leaseUpApplications.json'
+        }).as('leaseUpApplications')
+        cy.intercept('api/v1/applications/**/field_update_comments', {
+          fixture: 'fieldUpdateComments.json'
+        }).as('fieldUpdateComments')
+      } else {
+        cy.intercept('api/v1/lease-ups/listings/**').as('leaseUpListing')
+        cy.intercept('api/v1/lease-ups/applications?listing_id=**').as('leaseUpApplications')
+        cy.intercept('api/v1/applications/**/field_update_comments').as('fieldUpdateComments')
+      }
+    })
     it('should change status, substatus, and last updated date for the application application', () => {
       let originalStatus
 
       cy.visit('http://localhost:3000/')
       cy.login()
-      cy.visit(`/lease-ups/listings/${LEASE_UP_LISTING_ID}?featureFlag[PARTNERS_PAGINATION]=false`)
+      cy.visit(`/lease-ups/listings/${LEASE_UP_LISTING_ID}`)
       cy.wait('@leaseUpListing')
       cy.wait('@leaseUpApplications')
+      if (usingFixtures()) {
+        // for some unknown reason, this wait is needed when using fixtures, otherwise the dropdown will mysteriously disappear and prevent selecting of a substatus
+        cy.wait(1000)
+      }
 
       // Change status to one that is not currently selected.
       cy.getText(firstRowStatusDropdown).then((text) => {
@@ -61,9 +72,7 @@ describe('LeaseUpApplicationsPage status update', () => {
       it('should change the status for selected checkboxes', () => {
         cy.visit('http://localhost:3000/')
         cy.login()
-        cy.visit(
-          `/lease-ups/listings/${LEASE_UP_LISTING_ID}?featureFlag[PARTNERS_PAGINATION]=false`
-        )
+        cy.visit(`/lease-ups/listings/${LEASE_UP_LISTING_ID}`)
         cy.wait('@leaseUpListing')
         cy.wait('@leaseUpApplications')
 
@@ -110,9 +119,7 @@ describe('LeaseUpApplicationsPage status update', () => {
 
         cy.visit('http://localhost:3000/')
         cy.login()
-        cy.visit(
-          `/lease-ups/listings/${LEASE_UP_LISTING_ID}?featureFlag[PARTNERS_PAGINATION]=false`
-        )
+        cy.visit(`/lease-ups/listings/${LEASE_UP_LISTING_ID}`)
         cy.wait('@leaseUpListing')
         cy.wait('@leaseUpApplications')
 
@@ -128,9 +135,7 @@ describe('LeaseUpApplicationsPage status update', () => {
         it('should not update status and substatus', () => {
           cy.visit('http://localhost:3000/')
           cy.login()
-          cy.visit(
-            `/lease-ups/listings/${LEASE_UP_LISTING_ID}?featureFlag[PARTNERS_PAGINATION]=false`
-          )
+          cy.visit(`/lease-ups/listings/${LEASE_UP_LISTING_ID}`)
           cy.wait('@leaseUpListing')
           cy.wait('@leaseUpApplications')
 
@@ -141,7 +146,7 @@ describe('LeaseUpApplicationsPage status update', () => {
           cy.get(bulkActionCheckboxId(SECOND_ROW_LEASE_UP_APP_ID)).click()
 
           // Click on Add Comment
-          cy.get('.filter-group_action button:nth-child(2)').click()
+          cy.contains('button', 'Add Comment').click()
 
           cy.checkForStatusUpdateSuccess()
           cy.fillOutAndSubmitStatusModal(true)
@@ -156,12 +161,15 @@ describe('LeaseUpApplicationsPage status update', () => {
   })
   describe('filters', () => {
     describe('using the application filters', () => {
+      // filter tests require calling the real API, fixtures do not work
+      beforeEach(() => {
+        cy.intercept('api/v1/lease-ups/listings/**').as('leaseUpListing')
+        cy.intercept('api/v1/lease-ups/applications?listing_id=**').as('leaseUpApplications')
+      })
       it('should use all filters and update URL', () => {
         cy.visit('http://localhost:3000/')
         cy.login()
-        cy.visit(
-          `/lease-ups/listings/${LEASE_UP_LISTING_ID}?featureFlag[PARTNERS_PAGINATION]=false`
-        )
+        cy.visit(`/lease-ups/listings/${LEASE_UP_LISTING_ID}`)
         cy.wait('@leaseUpListing')
         cy.wait('@leaseUpApplications')
 
@@ -211,28 +219,31 @@ describe('LeaseUpApplicationsPage status update', () => {
 
             cy.url().should(
               'equal',
-              'http://localhost:3000/lease-ups/listings/a0W0P00000GbyuQ?preference=Certificate+of+Preference+%28COP%29&total_household_size=1&total_household_size=2&accessibility=Mobility+impairments&accessibility=Vision+impairments%2C+Hearing+impairments&status=Processing'
+              `http://localhost:3000/lease-ups/listings/${LEASE_UP_LISTING_ID}?preference=Certificate+of+Preference+%28COP%29&total_household_size=1&total_household_size=2&accessibility=Mobility+impairments&accessibility=Vision+impairments%2C+Hearing+impairments&status=Processing`
             )
 
             cy.get('input[name="search"]').type('Andrew{enter}')
 
             cy.url().should(
               'equal',
-              'http://localhost:3000/lease-ups/listings/a0W0P00000GbyuQ?preference=Certificate+of+Preference+%28COP%29&total_household_size=1&total_household_size=2&accessibility=Mobility+impairments&accessibility=Vision+impairments%2C+Hearing+impairments&status=Processing&search=Andrew'
+              `http://localhost:3000/lease-ups/listings/${LEASE_UP_LISTING_ID}?preference=Certificate+of+Preference+%28COP%29&total_household_size=1&total_household_size=2&accessibility=Mobility+impairments&accessibility=Vision+impairments%2C+Hearing+impairments&status=Processing&search=Andrew`
             )
 
             cy.contains('button', 'Clear all').click()
 
             cy.url().should(
               'equal',
-              'http://localhost:3000/lease-ups/listings/a0W0P00000GbyuQ?search=Andrew'
+              `http://localhost:3000/lease-ups/listings/${LEASE_UP_LISTING_ID}?search=Andrew`
             )
 
             cy.contains('button', 'Hide Filters').click()
 
             cy.get('button[data-testid="search-icon"]').click()
 
-            cy.url().should('equal', 'http://localhost:3000/lease-ups/listings/a0W0P00000GbyuQ')
+            cy.url().should(
+              'equal',
+              `http://localhost:3000/lease-ups/listings/${LEASE_UP_LISTING_ID}`
+            )
 
             cy.get('div[role="grid"] input[type="checkbox"]')
               .its('length')
@@ -282,12 +293,12 @@ describe('LeaseUpApplicationsPage status update', () => {
 
         cy.url().should(
           'equal',
-          'http://localhost:3000/lease-ups/listings/a0W0P00000GbyuQ?search=Andrew'
+          `http://localhost:3000/lease-ups/listings/${LEASE_UP_LISTING_ID}?search=Andrew`
         )
 
         cy.get('button[data-testid="search-icon"]').click()
 
-        cy.url().should('equal', 'http://localhost:3000/lease-ups/listings/a0W0P00000GbyuQ')
+        cy.url().should('equal', `http://localhost:3000/lease-ups/listings/${LEASE_UP_LISTING_ID}`)
       })
     })
   })

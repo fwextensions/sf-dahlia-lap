@@ -1,6 +1,7 @@
 import React from 'react'
 
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
+import { useFlag as useFlagUnleash, useFlagsStatus, useVariant } from '@unleash/proxy-client-react'
 import { act } from 'react-dom/test-utils'
 import { BrowserRouter } from 'react-router-dom'
 import selectEvent from 'react-select-event'
@@ -8,10 +9,23 @@ import selectEvent from 'react-select-event'
 import LeaseUpApplicationsFilterContainer from 'components/lease_ups/LeaseUpApplicationsFilterContainer'
 import Provider from 'context/Provider'
 import * as customHooks from 'utils/customHooks'
+import { LEASE_UP_STATUS_OPTIONS } from 'utils/statusUtils'
 
 const mockSubmit = jest.fn()
 const mockOnClearSelectedApplications = jest.fn()
 const mockOnSelectAllApplications = jest.fn()
+
+jest.mock('@unleash/proxy-client-react')
+useFlagUnleash.mockImplementation(() => false)
+useFlagsStatus.mockImplementation(() => ({
+  flagsError: false,
+  flagsReady: true
+}))
+useVariant.mockImplementation(() => ({
+  payload: {
+    value: '123'
+  }
+}))
 
 const getNode = (bulkCheckboxesState = {}) => (
   <BrowserRouter>
@@ -24,6 +38,7 @@ const getNode = (bulkCheckboxesState = {}) => (
         onBulkLeaseUpStatusChange={() => {}}
         onBulkLeaseUpCommentChange={() => {}}
         preferences={['pref option 1', 'pref option 2']}
+        statusOptions={LEASE_UP_STATUS_OPTIONS}
       />
     </Provider>
   </BrowserRouter>
@@ -257,10 +272,13 @@ describe('LeaseUpApplicationsFilterContainer', () => {
 
         describe('when a filter is changed', () => {
           beforeEach(async () => {
-            selectEvent.openMenu(screen.getAllByRole('combobox').pop())
-            await act(async () => {
-              fireEvent.click(screen.getByText(/processing/i))
-            })
+            const applicationStatusFilter = screen
+              .getByText('Application Status')
+              .closest('[data-testid="multiSelectField"]')
+
+            await selectEvent.select(within(applicationStatusFilter).getByRole('combobox'), [
+              'Processing'
+            ])
           })
 
           test('should should set hasChangedFilters = true', () => {

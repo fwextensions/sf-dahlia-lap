@@ -1,8 +1,7 @@
 import { request } from 'api/request'
-import { buildLeaseUpApplicationsParams } from 'components/lease_ups/utils/leaseUpRequestUtils'
-import { LISTING_TYPE_FIRST_COME_FIRST_SERVED } from 'utils/consts'
 
 import { isLeaseAlreadyCreated } from './components/supplemental_application/utils/supplementalApplicationUtils'
+import { formatCurrency } from './utils/utils'
 
 const getLeaseUpListings = async () =>
   request.get('/lease-ups/listings', null, true).then((r) => r.listings)
@@ -11,10 +10,23 @@ const getLeaseUpListing = async (listingId) =>
   request.get(`/lease-ups/listings/${listingId}`, null, true).then((r) => r.listing)
 
 const getShortFormApplication = async (applicationId) =>
-  request.get(`/short-form/${applicationId}`, null, true).then((response) => ({
-    application: response.application,
-    fileBaseUrl: response.file_base_url
-  }))
+  request.get(`/short-form/${applicationId}`, null, true).then((response) => {
+    const returnObj = {
+      application: response.application,
+      fileBaseUrl: response.file_base_url
+    }
+
+    if (response.application?.annual_income != null) {
+      returnObj.application.monthly_income = formatCurrency(response.application.annual_income / 12)
+    } else if (response.application?.monthly_income != null) {
+      returnObj.application.annual_income = formatCurrency(response.application.monthly_income * 12)
+    } else {
+      returnObj.application.monthly_income = 'None'
+      returnObj.application.annual_income = 'None'
+    }
+
+    return returnObj
+  })
 
 const getSupplementalApplication = async (applicationId) =>
   request
@@ -94,86 +106,12 @@ const fetchLeaseUpApplicationsPagination = async (listingId, page, { filters }) 
   )
 }
 
-/**
- * @deprecated in favor of fetchLeaseUpApplicationsPagination
- * @todo remove in DAH-2969
- */
-const fetchLeaseUpApplications = async (
-  listingId,
-  page,
-  { filters },
-  includeGeneralApps = true,
-  getAll
-) => {
-  const generalApps = {
-    records: [],
-    pages: 0
-  }
-
-  // Fetch application preferences associated with a lease up listing.
-  const appPrefs = await getLeaseUpApplications(listingId, filters, false, getAll)
-
-  // don't need to include general applications for first come fist served listings
-  // or when getting applications for layered preferences
-  // or when there are more than 2000 records in the preference response (right now, we don't need to show more than 2000 records)
-  if (
-    appPrefs.records.length < 2000 &&
-    appPrefs.listing_type !== LISTING_TYPE_FIRST_COME_FIRST_SERVED &&
-    includeGeneralApps
-  ) {
-    // Fetch general applications associated with a lease up listing.
-    const generalAppsResponse = await getLeaseUpApplications(listingId, filters, true)
-    generalApps.records = generalAppsResponse.records
-    generalApps.pages = generalAppsResponse.pages
-  }
-
-  return {
-    records: [...appPrefs.records, ...generalApps.records],
-    pages: appPrefs.pages + generalApps.pages,
-    listing_type: appPrefs.listing_type
-  }
-}
-
-/**
- * @deprecated
- * @todo remove in DAH-2969
- * */
-const getLeaseUpApplications = async (listingId, filters, general = false, getAll = false) => {
-  const applications = []
-  let pages
-  let listingType
-  let lastPref
-
-  // we stop when we've retrieved 50000 records so that we don't accidentally loop forever if there is an error
-  while (applications.length < 50000) {
-    const response = await request.get(
-      '/lease-ups/applications',
-      {
-        params: buildLeaseUpApplicationsParams(listingId, filters, lastPref, general)
-      },
-      true
-    )
-
-    lastPref = response.records[response.records.length - 1]
-
-    // We want to use the pages from the first call because it has all the pages
-    if (!pages) {
-      pages = response.pages
-      listingType = response.listing_type
-    }
-
-    applications.push(...response.records)
-
-    if (!getAll || response.total_size < 2000) {
-      break
-    }
-  }
-
-  return { records: applications, pages, listing_type: listingType }
-}
-
 const fetchApplicationsForLotteryResults = async (listingId) => {
   return request.get(`/lottery-results?listing_id=${listingId}`)
+}
+
+const fetchLotteryResults = async (listingId) => {
+  return request.get(`/lottery-results?listing_id=${listingId}&use_lottery_result_api=true`)
 }
 
 const getAMI = async ({ chartType, chartYear }) =>
@@ -211,6 +149,10 @@ const updatePreference = async (preference) =>
 
 const updateApplication = async (application) =>
   request.put(`/applications/${application.id}`, { application }, true)
+
+const updateListing = async (listing) => {
+  return request.put(`/listings/${listing.id}`, { listing }, true)
+}
 
 const createRentalAssistance = async (rentalAssistance, applicationId) => {
   const postData = {
@@ -288,6 +230,20 @@ export const createLease = async (leaseToCreate, primaryApplicantContact, applic
 export const deleteLease = async (applicationId, leaseId) =>
   request.destroy(`/applications/${applicationId}/leases/${leaseId}`, null, true)
 
+const sendInvite = async (listing, appIds, deadline, testEmail = null) => {
+  return request.post(
+    `/message`,
+    {
+      applicationIds: appIds,
+      listing,
+      invite_to_apply_deadline: deadline,
+      isTest: testEmail !== null,
+      testEmail
+    },
+    true
+  )
+}
+
 export default {
   updateApplication,
   fetchFlaggedApplications,
@@ -295,7 +251,6 @@ export default {
   updateFlaggedApplication,
   submitApplication,
   fetchApplications,
-  fetchLeaseUpApplications,
   fetchLeaseUpApplicationsPagination,
   getAMI,
   getUnits,
@@ -315,5 +270,8 @@ export default {
   createLease,
   deleteLease,
   updateLease,
-  fetchApplicationsForLotteryResults
+  fetchApplicationsForLotteryResults,
+  fetchLotteryResults,
+  updateListing,
+  sendInvite
 }

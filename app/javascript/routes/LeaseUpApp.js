@@ -9,10 +9,10 @@ import GoogleAnalyticsTracker from 'routes/GoogleAnalyticsTracker'
 import LeaseUpRoutes from './LeaseUpRoutes'
 
 const config = {
-  url: process.env.UNLEASH_URL,
+  url: new URL('frontend', process.env.UNLEASH_URL),
   clientKey: process.env.UNLEASH_TOKEN,
-  refreshInterval: 15, // How often (in seconds) the client should poll the proxy for updates
-  appName: 'partners' // The name of your application. It's only used for identifying your application
+  refreshInterval: 0,
+  appName: 'partners'
 }
 
 const LeaseUpApp = () => (

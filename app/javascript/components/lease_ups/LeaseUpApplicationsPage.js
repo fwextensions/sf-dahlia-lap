@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react'
 
-import { map, isEqual } from 'lodash'
+import { find, map, isEqual } from 'lodash'
 import moment from 'moment'
 import { useParams, useSearchParams, useLocation } from 'react-router-dom'
 
@@ -11,7 +11,7 @@ import {
   applicationsPageMounted,
   applicationsTableFiltersApplied
 } from 'components/lease_ups/actions/actionCreators'
-import { LEASE_UP_APPLICATION_FILTERS } from 'components/lease_ups/applicationFiltersConsts'
+import { getLeaseUpApplicationFilters } from 'components/lease_ups/applicationFiltersConsts'
 import appPaths from 'utils/appPaths'
 import {
   useAsync,
@@ -21,13 +21,21 @@ import {
   useIsMountedRef,
   useAppContext
 } from 'utils/customHooks'
-import { EagerPagination, SERVER_PAGE_SIZE } from 'utils/EagerPagination'
+import { GRAPHQL_SERVER_PAGE_SIZE, EagerPagination } from 'utils/EagerPagination'
 import { useFeatureFlag } from 'utils/hooks/useFeatureFlag'
+import {
+  getLeaseUpStatusOptions,
+  getLeaseUpSubstatusOptions,
+  I2A_FEATURE_FLAG,
+  I2I_FEATURE_FLAG,
+  INVITE_EMAIL_OPTIONS
+} from 'utils/inviteEmail'
+import { getSubStatusLabel } from 'utils/statusUtils'
 import { SALESFORCE_DATE_FORMAT } from 'utils/utils'
 
 import Context from './context'
 import LeaseUpApplicationsTableContainer from './LeaseUpApplicationsTableContainer'
-import { getApplicationsPagination, getApplications, getListing } from './utils/leaseUpRequestUtils'
+import { getApplicationsPagination, getListing } from './utils/leaseUpRequestUtils'
 import TableLayout from '../layouts/TableLayout'
 import { createFieldUpdateComment } from '../supplemental_application/utils/supplementalRequestUtils'
 
@@ -86,8 +94,20 @@ const LeaseUpApplicationsPage = () => {
   // grab the listing id from the url: /lease-ups/listings/:listingId
   const { listingId } = useParams()
 
-  const { unleashFlag: partnersPaginationEnabled, flagsReady } =
-    useFeatureFlag('PARTNERS_PAGINATION')
+  const { unleashFlag: inviteApplyFlag } = useFeatureFlag(I2A_FEATURE_FLAG, false)
+  const { unleashFlag: inviteInterviewFlag } = useFeatureFlag(I2I_FEATURE_FLAG, false)
+  const [featureFlags, setFeatureFlags] = useStateObject({})
+  useEffect(() => {
+    setFeatureFlags({
+      i2a: {
+        flag: inviteApplyFlag
+      },
+      i2i: {
+        flag: inviteInterviewFlag
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inviteApplyFlag, inviteInterviewFlag])
 
   const [state, setState] = useStateObject({
     loading: false,
@@ -95,15 +115,9 @@ const LeaseUpApplicationsPage = () => {
     pages: 0,
     atMaxPages: false,
     forceRefreshNextPageUpdate: false,
-    eagerPagination: new EagerPagination(ROWS_PER_PAGE, SERVER_PAGE_SIZE)
+    eagerPagination: new EagerPagination(ROWS_PER_PAGE, GRAPHQL_SERVER_PAGE_SIZE, true),
+    showPageInfo: false
   })
-
-  useEffect(() => {
-    if (flagsReady && !partnersPaginationEnabled) {
-      setState({ eagerPagination: new EagerPagination(ROWS_PER_PAGE, 50000) })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flagsReady])
 
   const [bulkCheckboxesState, setBulkCheckboxesState, overrideBulkCheckboxesState] = useStateObject(
     {}
@@ -122,24 +136,50 @@ const LeaseUpApplicationsPage = () => {
 
   const isMountedRef = useIsMountedRef()
 
-  const [{ reportId, listingPreferences, listingType }, setListingState] = useStateObject({})
+  const [{ reportId, listingPreferences, listingType, listing }, setListingState] = useStateObject(
+    {}
+  )
+  const [invitesEnabled, setInvitesEnabled] = useStateObject({})
+  const statusOptions = getLeaseUpStatusOptions(invitesEnabled.any === true)
+  const substatusOptions = getLeaseUpSubstatusOptions(invitesEnabled.any === true)
+
   useAsyncOnMount(() => getListing(listingId), {
     onSuccess: (listing) => {
       setListingState({
         reportId: listing.report_id,
         listingPreferences: getPreferences(listing),
-        listingType: listing.listing_type
+        listingType: listing.listing_type,
+        listing
       })
 
       applicationsPageLoadComplete(dispatch, listing)
     }
   })
 
+  useEffect(() => {
+    if (Object.keys(featureFlags).length === 0 || !listing) {
+      return
+    }
+    const determinedInvitesEnabled = {
+      any: false
+    }
+    for (const option of INVITE_EMAIL_OPTIONS) {
+      const enabled = option.enabled(listing, featureFlags[option.value].flag)
+      determinedInvitesEnabled[option.value] = enabled
+      if (enabled) {
+        determinedInvitesEnabled.any = true
+      }
+    }
+    setInvitesEnabled(determinedInvitesEnabled)
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listing, featureFlags])
+
   useAsync(
     () => {
       const urlFilters = {}
       let { appliedFilters, page } = applicationsListData
-      LEASE_UP_APPLICATION_FILTERS.forEach((filter) => {
+      getLeaseUpApplicationFilters(statusOptions).forEach((filter) => {
         const values = searchParams.getAll(filter.fieldName)
         if (values.length > 0) {
           urlFilters[filter.fieldName] = values
@@ -168,21 +208,11 @@ const LeaseUpApplicationsPage = () => {
         return null
       }
 
-      const fetcher = (p) =>
-        partnersPaginationEnabled
-          ? getApplicationsPagination(listingId, p, appliedFilters)
-          : getApplications(listingId, p, appliedFilters)
+      const fetcher = (p) => getApplicationsPagination(listingId, p, appliedFilters)
 
       setState({ loading: true })
 
-      if (flagsReady) {
-        return state.eagerPagination.getPage(
-          page,
-          fetcher,
-          state.forceRefreshNextPageUpdate,
-          partnersPaginationEnabled
-        )
-      }
+      return state.eagerPagination.getPage(page, fetcher, state.forceRefreshNextPageUpdate)
     },
     {
       onSuccess: ({ records, pages }) => {
@@ -199,7 +229,7 @@ const LeaseUpApplicationsPage = () => {
     },
     // Using location in the deps array allows us to run this effect:
     // on mount, if the user changes the url manually, or if the user hits the back button
-    [location, applicationsListData.page, flagsReady, state.eagerPagination]
+    [location, applicationsListData.page, state.eagerPagination]
   )
 
   useEffectOnMount(() => applicationsPageMounted(dispatch))
@@ -233,6 +263,17 @@ const LeaseUpApplicationsPage = () => {
 
     Object.keys(applicationsData).forEach((appId) => {
       applicationsData[appId].comment = submittedValues.comment?.trim()
+
+      // previous substatus might be a comment
+      // clear it out if so
+      if (
+        !find(substatusOptions[applicationsData[appId].status] || [], {
+          value: applicationsData[appId].subStatus
+        })
+      ) {
+        applicationsData[appId].subStatus = ''
+      }
+
       if (status) {
         applicationsData[appId].status = status
         applicationsData[appId].subStatus = subStatus
@@ -347,7 +388,9 @@ const LeaseUpApplicationsPage = () => {
         ...(updatedApp && {
           lease_up_status: updatedApp.status,
           status_last_updated: moment().format(SALESFORCE_DATE_FORMAT),
-          sub_status: updatedApp.subStatus
+          sub_status: updatedApp.subStatus,
+          sub_status_label:
+            getSubStatusLabel(updatedApp.status, updatedApp.subStatus) || updatedApp.comment
         })
       }
     })
@@ -385,12 +428,30 @@ const LeaseUpApplicationsPage = () => {
     preferences: listingPreferences,
     rowsPerPage: ROWS_PER_PAGE,
     statusModal: statusModalState,
-    hasFilters: Object.keys(applicationsListData.appliedFilters).length > 0
+    listing,
+    pageState: state,
+    setPageState: setState,
+    hasFilters: Object.keys(applicationsListData.appliedFilters).length > 0,
+    statusOptions,
+    substatusOptions,
+    invitesEnabled
+  }
+
+  const closePageAlert = () => {
+    setState({ showPageInfo: false })
   }
 
   return (
     <Context.Provider value={context}>
-      <TableLayout pageHeader={getPageHeaderData(breadcrumbData.listing, reportId)}>
+      <TableLayout
+        pageHeader={getPageHeaderData(breadcrumbData.listing, reportId)}
+        info={{
+          message: "We're sending your messages.  Refresh the page to see updates.",
+          show: state.showPageInfo,
+          onCloseClick: closePageAlert,
+          icon: 'i-hour-glass'
+        }}
+      >
         <LeaseUpApplicationsTableContainer />
       </TableLayout>
     </Context.Provider>

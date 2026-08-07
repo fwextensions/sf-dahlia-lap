@@ -11,10 +11,9 @@ import { TextAreaField, Label, FieldError } from 'utils/form/final_form/Field'
 import validate from 'utils/form/validations'
 import {
   statusRequiresComments,
+  validateStatusForm,
   LEASE_UP_STATUS_VALUES,
-  LEASE_UP_SUBSTATUS_OPTIONS,
-  LEASE_UP_SUBSTATUS_VALUES,
-  validateStatusForm
+  LEASE_UP_SUBSTATUS_VALUES
 } from 'utils/statusUtils'
 
 import FormModal from './FormModal'
@@ -38,7 +37,9 @@ const StatusModalWrapper = ({
   status = null,
   submitButton,
   subStatus = null,
-  title = null
+  title = null,
+  substatusOptions = null,
+  statusOptions = null
 }) => {
   return (
     <FormModal
@@ -64,7 +65,7 @@ const StatusModalWrapper = ({
       }}
       validateError={(values) => {
         const errors = {}
-        if (values.status && LEASE_UP_SUBSTATUS_OPTIONS[values.status] && !values.subStatus) {
+        if (values.status && substatusOptions[values.status] && !values.subStatus) {
           errors.subStatus = 'Please provide status details.'
         }
         if (
@@ -98,6 +99,7 @@ const StatusModalWrapper = ({
                             }}
                             expand
                             size='small'
+                            statusOptions={statusOptions}
                           />
                           <FieldError meta={meta} />
                         </div>
@@ -106,7 +108,7 @@ const StatusModalWrapper = ({
                   />
                 </FormGrid.Item>
               </FormGrid.Row>
-              {values.status && LEASE_UP_SUBSTATUS_OPTIONS[values.status] && (
+              {values.status && substatusOptions[values.status] && (
                 <FormGrid.Row paddingBottom>
                   <FormGrid.Item width='100%'>
                     <Field
@@ -122,6 +124,7 @@ const StatusModalWrapper = ({
                               onChange={onChange}
                               hasError={hasError}
                               expand
+                              substatusOptions={substatusOptions}
                             />
                             <FieldError meta={meta} />
                           </div>
@@ -171,5 +174,7 @@ StatusModalWrapper.propTypes = {
   status: PropTypes.oneOf(LEASE_UP_STATUS_VALUES),
   submitButton: PropTypes.node,
   subStatus: PropTypes.oneOf(LEASE_UP_SUBSTATUS_VALUES),
-  title: PropTypes.string
+  title: PropTypes.string,
+  substatusOptions: PropTypes.object,
+  statusOptions: PropTypes.array
 }

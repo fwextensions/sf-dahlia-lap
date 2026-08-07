@@ -6,9 +6,10 @@ class Api::V1::FieldUpdateCommentsController < ApiController
 
   def index
     application_id = params[:application_id]
+    status_history = service.status_history_by_application(application_id)
 
     render json: {
-      data: service.status_history_by_application(application_id),
+      data: status_history,
     }
   end
 

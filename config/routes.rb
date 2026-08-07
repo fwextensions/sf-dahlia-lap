@@ -46,6 +46,8 @@ Rails.application.routes.draw do
 
       resources :supplementals, only: %w[show]
 
+      resources :listings, only: %w[update]
+
       resources :applications, only: %w[index update] do
         resources :leases, only: %w[index create update destroy]
         resources :field_update_comments, only: %w[index create]
@@ -70,6 +72,8 @@ Rails.application.routes.draw do
       scope '/short-form' do
         match 'submit', to: 'short_form#submit', via: %i[put post]
       end
+
+      post 'message' => 'message#email'
     end
   end
 end

@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+
 # Root controller from which all our Rails controllers inherit.
 class ApplicationController < ActionController::Base
+  before_action :load_listing_on_lease_up_page
   protect_from_forgery with: :exception
 
   # Fixture mode has no Salesforce connection, so Salesforce OAuth can't be
@@ -48,5 +50,22 @@ class ApplicationController < ActionController::Base
 
   def file_base_url
     current_user.admin ? ENV['SALESFORCE_INSTANCE_URL'] : ENV['COMMUNITY_LOGIN_URL']
+  end
+
+  def load_listing_on_lease_up_page
+    @listing = nil
+    @show_invite_to_apply_feedback_banner = false
+    lease_up_page = request.path.match?('/lease-ups/listings/')
+
+    return unless lease_up_page
+
+    @listing = soql_listing_service.listing(params[:lease_up_id])
+    @show_invite_to_apply_feedback_banner = (@listing.leaseup_outreach == 'Appointments required' || 
+                                            @listing.leaseup_outreach == 'Submit all info online') &&
+                                            ENV['BANNER_INVITE_TO_APPLY_FEEDBACK'] == 'true'
+  end
+
+  def soql_listing_service
+    Force::Soql::ListingService.new(current_user)
   end
 end

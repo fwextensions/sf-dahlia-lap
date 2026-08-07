@@ -28,6 +28,9 @@ module Api
         params.require(:application).permit(
           :id,
           :total_monthly_rent,
+          :invite_to_apply_deadline_date,
+          :upload_url,
+          :scheduling_url,
         )
       end
 

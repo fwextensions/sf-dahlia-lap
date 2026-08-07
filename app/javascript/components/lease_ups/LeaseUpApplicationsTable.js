@@ -15,14 +15,13 @@ import StatusCell from 'components/lease_ups/application_page/StatusCell'
 import appPaths from 'utils/appPaths'
 import { useAppContext } from 'utils/customHooks'
 import { MAX_SERVER_LIMIT } from 'utils/EagerPagination'
-import { useFeatureFlag } from 'utils/hooks/useFeatureFlag'
 import { cellFormat } from 'utils/reactTableUtils'
 import { getLeaseUpStatusClass } from 'utils/statusUtils'
 
 const CELL_PADDING_PX = 16
 const STATUS_COLUMN_WIDTH_PX = 192
 
-const getCellWidth = (baseSizePx, isAtStartOrEnd = false) => {
+export const getCellWidth = (baseSizePx, isAtStartOrEnd = false) => {
   // We put 1/2 cell padding on either side of every cell so that the total padding between
   // cells is CELL_PADDING_PX. However, if the cell is at the start or end we want the full
   // padding on one side and half padding on the other side, so we need to multiply the padding by 1.5x.
@@ -30,7 +29,7 @@ const getCellWidth = (baseSizePx, isAtStartOrEnd = false) => {
   return baseSizePx + padding
 }
 
-const textCell = ({ value }) => {
+export const textCell = ({ value }) => {
   const textStyle = {
     width: '100%',
     textOverflow: 'ellipsis',
@@ -46,13 +45,13 @@ const textCell = ({ value }) => {
 
 const LeaseUpApplicationsTable = ({
   dataSet,
-  prefMap,
   onLeaseUpStatusChange,
   pages,
   rowsPerPage,
   atMaxPages,
   bulkCheckboxesState,
-  onBulkCheckboxClick
+  onBulkCheckboxClick,
+  statusOptions
 }) => {
   const [
     {
@@ -62,9 +61,6 @@ const LeaseUpApplicationsTable = ({
   ] = useAppContext()
 
   const navigate = useNavigate()
-
-  const { unleashFlag: partnersPaginationEnabled, flagsReady } =
-    useFeatureFlag('PARTNERS_PAGINATION')
 
   const updateSelectedApplicationState = (application, navigateToApplication = false) => {
     applicationRowClicked(dispatch, application)
@@ -81,13 +77,9 @@ const LeaseUpApplicationsTable = ({
     atMaxPages || page >= 100 ? maxPagesMsg : 'No results, try adjusting your filters'
 
   const getPreferenceValidation = (cell) => {
-    if (partnersPaginationEnabled && flagsReady) {
-      return cell.original.layered_preference_validation
-        ? cell.original.layered_preference_validation
-        : cell.original.post_lottery_validation
-    } else {
-      return prefMap[`${cell.original.application_id}-${cell.original.preference_name}`]
-    }
+    return cell.original.layered_preference_validation
+      ? cell.original.layered_preference_validation
+      : cell.original.post_lottery_validation
   }
 
   const columns = [
@@ -171,7 +163,7 @@ const LeaseUpApplicationsTable = ({
     },
     {
       Header: 'Latest Substatus',
-      accessor: 'sub_status',
+      accessor: 'sub_status_label',
       className: 'td-offset-right',
       headerClassName: 'td-offset-right',
 
@@ -190,6 +182,7 @@ const LeaseUpApplicationsTable = ({
         const { application_id: applicationId } = cell.original
         return (
           <StatusCell
+            statusOptions={statusOptions}
             applicationId={applicationId}
             status={cell.value}
             onChange={(val) => onLeaseUpStatusChange(val, applicationId, false)}

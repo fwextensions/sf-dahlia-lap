@@ -232,6 +232,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIYp1QAH"
               >
                 APP-00824414
@@ -296,10 +297,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="No response after two or more attempts"
-              >
-                No response after two or more attempts
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -324,7 +322,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -343,7 +341,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -351,7 +349,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-2-input"
                               inputmode="none"
                               role="combobox"
@@ -436,12 +434,12 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                   L_W 1
                 </div>
                 <svg
-                  data-testid="preference-rank-check-icon"
-                  style="width: 1.25rem; height: 1.25rem; fill: #2e8540;"
+                  data-testid="preference-rank-x-icon"
+                  style="width: 1rem; height: 1rem; fill: #e31c3d;"
                 >
                   <use
-                    style="fill: #2e8540;"
-                    xlink:href="#i-check"
+                    style="fill: #e31c3d;"
+                    xlink:href="#i-close"
                   />
                 </svg>
               </div>
@@ -452,6 +450,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIKuwQAH"
               >
                 APP-00821953
@@ -516,10 +515,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="Written withdrawal"
-              >
-                Written withdrawal
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -544,7 +540,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-withdrawn tight-padding tiny margin-bottom-none"
@@ -563,7 +559,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -571,7 +567,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-3-input"
                               inputmode="none"
                               role="combobox"
@@ -672,6 +668,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIYpGQAX"
               >
                 APP-00824415
@@ -736,10 +733,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="No response after two or more attempts"
-              >
-                No response after two or more attempts
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -764,7 +758,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -783,7 +777,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -791,7 +785,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-4-input"
                               inputmode="none"
                               role="combobox"
@@ -892,6 +886,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIK4SQAX"
               >
                 APP-00821618
@@ -956,10 +951,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="No response after two or more attempts"
-              >
-                No response after two or more attempts
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -984,7 +976,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -1003,7 +995,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -1011,7 +1003,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-5-input"
                               inputmode="none"
                               role="combobox"
@@ -1112,6 +1104,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIJxEQAX"
               >
                 APP-00821575
@@ -1176,10 +1169,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="No response after two or more attempts"
-              >
-                No response after two or more attempts
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -1204,7 +1194,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -1223,7 +1213,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -1231,7 +1221,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-6-input"
                               inputmode="none"
                               role="combobox"
@@ -1332,6 +1322,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIchuQAD"
               >
                 APP-00824919
@@ -1396,10 +1387,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="Written withdrawal"
-              >
-                Written withdrawal
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -1424,7 +1412,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-withdrawn tight-padding tiny margin-bottom-none"
@@ -1443,7 +1431,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -1451,7 +1439,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-7-input"
                               inputmode="none"
                               role="combobox"
@@ -1552,6 +1540,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIKRaQAP"
               >
                 APP-00821780
@@ -1616,10 +1605,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="No response after two or more attempts"
-              >
-                No response after two or more attempts
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -1644,7 +1630,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -1663,7 +1649,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -1671,7 +1657,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-8-input"
                               inputmode="none"
                               role="combobox"
@@ -1772,6 +1758,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIXY4QAP"
               >
                 APP-00824151
@@ -1836,10 +1823,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="No response after two or more attempts"
-              >
-                No response after two or more attempts
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -1864,7 +1848,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -1883,7 +1867,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -1891,7 +1875,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-9-input"
                               inputmode="none"
                               role="combobox"
@@ -1992,6 +1976,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIYrNQAX"
               >
                 APP-00824426
@@ -2056,10 +2041,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="No response after two or more attempts"
-              >
-                No response after two or more attempts
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -2084,7 +2066,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -2103,7 +2085,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -2111,7 +2093,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-10-input"
                               inputmode="none"
                               role="combobox"
@@ -2212,6 +2194,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIJmNQAX"
               >
                 APP-00821445
@@ -2276,10 +2259,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="Written withdrawal"
-              >
-                Written withdrawal
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -2304,7 +2284,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-withdrawn tight-padding tiny margin-bottom-none"
@@ -2323,7 +2303,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -2331,7 +2311,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-11-input"
                               inputmode="none"
                               role="combobox"
@@ -2432,6 +2412,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIKfnQAH"
               >
                 APP-00821876
@@ -2496,10 +2477,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="No response after two or more attempts"
-              >
-                No response after two or more attempts
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -2524,7 +2502,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -2543,7 +2521,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -2551,7 +2529,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-12-input"
                               inputmode="none"
                               role="combobox"
@@ -2652,6 +2630,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIKD8QAP"
               >
                 APP-00821674
@@ -2716,10 +2695,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="No response after two or more attempts"
-              >
-                No response after two or more attempts
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -2744,7 +2720,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -2763,7 +2739,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -2771,7 +2747,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-13-input"
                               inputmode="none"
                               role="combobox"
@@ -2872,6 +2848,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIXj7QAH"
               >
                 APP-00824182
@@ -2936,10 +2913,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="No response after two or more attempts"
-              >
-                No response after two or more attempts
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -2964,7 +2938,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -2983,7 +2957,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -2991,7 +2965,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-14-input"
                               inputmode="none"
                               role="combobox"
@@ -3092,6 +3066,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIJoTQAX"
               >
                 APP-00821475
@@ -3156,10 +3131,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="No response after two or more attempts"
-              >
-                No response after two or more attempts
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -3184,7 +3156,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -3203,7 +3175,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -3211,7 +3183,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-15-input"
                               inputmode="none"
                               role="combobox"
@@ -3312,6 +3284,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIKfEQAX"
               >
                 APP-00821870
@@ -3376,10 +3349,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="No response after two or more attempts"
-              >
-                No response after two or more attempts
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -3404,7 +3374,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -3423,7 +3393,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -3431,7 +3401,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-16-input"
                               inputmode="none"
                               role="combobox"
@@ -3532,6 +3502,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIK3jQAH"
               >
                 APP-00821609
@@ -3596,10 +3567,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="No response after two or more attempts"
-              >
-                No response after two or more attempts
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -3624,7 +3592,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -3643,7 +3611,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -3651,7 +3619,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-17-input"
                               inputmode="none"
                               role="combobox"
@@ -3752,6 +3720,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIXTuQAP"
               >
                 APP-00824135
@@ -3816,10 +3785,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="Over income"
-              >
-                Over income
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -3844,7 +3810,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -3863,7 +3829,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -3871,7 +3837,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-18-input"
                               inputmode="none"
                               role="combobox"
@@ -3972,6 +3938,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIL49QAH"
               >
                 APP-00821997
@@ -4036,10 +4003,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="Missing documents"
-              >
-                Missing documents
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -4064,7 +4028,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -4083,7 +4047,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -4091,7 +4055,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-19-input"
                               inputmode="none"
                               role="combobox"
@@ -4192,6 +4156,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIPTJQA5"
               >
                 APP-00822926
@@ -4256,10 +4221,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="No response after two or more attempts"
-              >
-                No response after two or more attempts
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -4284,7 +4246,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-disqualified tight-padding tiny margin-bottom-none"
@@ -4303,7 +4265,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -4311,7 +4273,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-20-input"
                               inputmode="none"
                               role="combobox"
@@ -4412,6 +4374,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
               style="flex: 112 0 auto; width: 112px; max-width: 112px;"
             >
               <a
+                data-discover="true"
                 href="/lease-ups/applications/a0o4U00000KIUAsQAP"
               >
                 APP-00823612
@@ -4476,10 +4439,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
             >
               <div
                 style="width: 100%; text-overflow: ellipsis; overflow: hidden;"
-                title="Verbal withdrawal"
-              >
-                Verbal withdrawal
-              </div>
+              />
             </div>
             <div
               class="rt-td td-status td-fixed-right"
@@ -4504,7 +4464,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                     role="log"
                   />
                   <div
-                    class="status-dropdown__control css-uuqjpg-Control"
+                    class="status-dropdown__control css-10ganm4"
                   >
                     <button
                       class="button dropdown-button is-withdrawn tight-padding tiny margin-bottom-none"
@@ -4523,7 +4483,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                           style="width: 0px; height: 0px;"
                         >
                           <div
-                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-1fdsijx-ValueContainer"
+                            class="status-dropdown__value-container status-dropdown__value-container--has-value css-hlgwow"
                           >
                             <input
                               aria-activedescendant=""
@@ -4531,7 +4491,7 @@ exports[`LeaseUpApplicationsTable should render succesfully when not loading 1`]
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="css-mohuvp-dummyInput-DummyInput"
+                              class="css-1s80ejz-dummyInput-DummyInput"
                               id="react-select-21-input"
                               inputmode="none"
                               role="combobox"

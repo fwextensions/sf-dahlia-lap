@@ -7,14 +7,15 @@ import { useSearchParams } from 'react-router-dom'
 
 import Button from 'components/atoms/Button'
 import Checkbox from 'components/atoms/Checkbox'
-import { LEASE_UP_APPLICATION_FILTERS } from 'components/lease_ups/applicationFiltersConsts'
+import { getLeaseUpApplicationFilters } from 'components/lease_ups/applicationFiltersConsts'
 import LeaseUpApplicationsFilters from 'components/lease_ups/LeaseUpApplicationsFilters'
+import ButtonDropdown from 'components/molecules/ButtonDropdown'
 import Loading from 'components/molecules/Loading'
 import ShowHideFiltersButton from 'components/molecules/ShowHideFiltersButton'
-import StatusDropdown from 'components/molecules/StatusDropdown'
 import { useAppContext } from 'utils/customHooks'
 import SearchField from 'utils/form/final_form/SearchField'
 import formUtils from 'utils/formUtils'
+import { INVITE_EMAIL_OPTIONS } from 'utils/inviteEmail'
 
 const styles = {
   marginBottomZero: {
@@ -28,8 +29,8 @@ const styles = {
   }
 }
 
-const getNumFiltersApplied = (form) => {
-  return LEASE_UP_APPLICATION_FILTERS.filter((f) => {
+const getNumFiltersApplied = (form, statusOptions) => {
+  return getLeaseUpApplicationFilters(statusOptions).filter((f) => {
     const value = form.getState().values[f.fieldName]
     return !(!value || value.length === 0)
   }).length
@@ -40,11 +41,14 @@ const LeaseUpApplicationsFilterContainer = ({
   onSubmit,
   preferences = [],
   loading = false,
-  bulkCheckboxesState = [],
+  bulkCheckboxesState = {},
   onBulkLeaseUpStatusChange,
   onBulkLeaseUpCommentChange,
+  onRsvpSendEmailChange,
   onClearSelectedApplications = () => {},
-  onSelectAllApplications = () => {}
+  onSelectAllApplications = () => {},
+  statusOptions = [],
+  invitesEnabled = {}
 }) => {
   const [isShowingFilters, setIsShowingFilters] = useState(false)
   const [hasChangedFilters, setHasChangedFilters] = useState(false)
@@ -90,7 +94,7 @@ const LeaseUpApplicationsFilterContainer = ({
   }
 
   const handleClearFilters = (form) => {
-    LEASE_UP_APPLICATION_FILTERS.forEach((f) => {
+    getLeaseUpApplicationFilters(statusOptions).forEach((f) => {
       const isChanged = !!form.getState().values[f.fieldName]
       if (isChanged) {
         form.change(f.fieldName, null)
@@ -102,6 +106,7 @@ const LeaseUpApplicationsFilterContainer = ({
   const applicationIds = Object.entries(bulkCheckboxesState)
   const numChecked = applicationIds.filter(([_, checked]) => checked).length
   const allChecked = applicationIds.length > 0 && applicationIds.length === numChecked
+  const enabledInviteOptions = INVITE_EMAIL_OPTIONS.filter((option) => invitesEnabled[option.value])
 
   const handleCheckboxClicked = () => {
     if (numChecked > 0) {
@@ -138,7 +143,7 @@ const LeaseUpApplicationsFilterContainer = ({
                 </div>
                 <div className='filter-group_action'>
                   <div className='padding-right--half d-inline-block'>
-                    <StatusDropdown
+                    <ButtonDropdown
                       classes={{ tertiary: numChecked === 0 }}
                       disabled={numChecked === 0}
                       onChange={onBulkLeaseUpStatusChange}
@@ -147,18 +152,38 @@ const LeaseUpApplicationsFilterContainer = ({
                       dataTestId={'bulk-status-dropdown'}
                       forceDisplayPlaceholderText
                       tertiary={numChecked === 0}
+                      options={statusOptions}
+                      classNamePrefix={'status-dropdown'}
                     />
                   </div>
-                  <Button
-                    tertiary={numChecked === 0}
-                    disabled={numChecked === 0}
-                    onClick={onBulkLeaseUpCommentChange}
-                    type='button'
-                    minWidthPx='185px'
-                    text='Add Comment'
-                    textAlign='left'
-                    noBottomMargin
-                  />
+                  <div className='padding-right--half d-inline-block'>
+                    <Button
+                      tertiary={numChecked === 0}
+                      disabled={numChecked === 0}
+                      onClick={onBulkLeaseUpCommentChange}
+                      type='button'
+                      minWidthPx='185px'
+                      text='Add Comment'
+                      textAlign='left'
+                      noBottomMargin
+                    />
+                  </div>
+                  {invitesEnabled.any && (
+                    <div className='padding-right--half d-inline-block'>
+                      <ButtonDropdown
+                        classes={{ tertiary: numChecked === 0 }}
+                        disabled={numChecked === 0}
+                        onChange={onRsvpSendEmailChange}
+                        minWidthPx={'185px'}
+                        placeholder={'Send Email'}
+                        dataTestId={'bulk-email-dropdown'}
+                        forceDisplayPlaceholderText
+                        tertiary={numChecked === 0}
+                        options={enabledInviteOptions}
+                        classNamePrefix={'rsvp-dropdown'}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
               <div className='filter-group'>
@@ -199,6 +224,7 @@ const LeaseUpApplicationsFilterContainer = ({
                 hasChangedFilters={hasChangedFilters}
                 onFilterChange={handleFilterChange}
                 onClearFilters={() => handleClearFilters(form)}
+                statusOptions={statusOptions}
               />
             )}
           </form>
@@ -209,14 +235,19 @@ const LeaseUpApplicationsFilterContainer = ({
 }
 
 LeaseUpApplicationsFilterContainer.propTypes = {
+  listingType: PropTypes.string.isRequired,
   onSubmit: PropTypes.func.isRequired,
   onBulkLeaseUpStatusChange: PropTypes.func.isRequired,
   onBulkLeaseUpCommentChange: PropTypes.func.isRequired,
+  onRsvpSendEmailChange: PropTypes.func.isRequired,
   onClearSelectedApplications: PropTypes.func,
   onSelectAllApplications: PropTypes.func,
   preferences: PropTypes.array,
   loading: PropTypes.bool,
-  bulkActionApplications: PropTypes.object
+  bulkCheckboxesState: PropTypes.object,
+  bulkActionApplications: PropTypes.object,
+  statusOptions: PropTypes.array,
+  invitesEnabled: PropTypes.object
 }
 
 export default LeaseUpApplicationsFilterContainer

@@ -1,6 +1,10 @@
-import { render, screen, fireEvent, within, act } from '@testing-library/react'
+import { render, screen, fireEvent, within, act, waitFor } from '@testing-library/react'
+import { useFlag as useFlagUnleash, useFlagsStatus, useVariant } from '@unleash/proxy-client-react'
 import { cloneDeep } from 'lodash'
 import selectEvent from 'react-select-event'
+
+import { isContactUpdated } from 'components/supplemental_application/SupplementalApplicationPage'
+import { CONTACT_INFO_UPDATED_BADGES_FLAG } from 'utils/consts'
 
 import supplementalApplication from '../../fixtures/supplemental_application'
 import { leaseUpAppWithUrl, renderAppWithUrl } from '../../testUtils/wrapperUtil'
@@ -12,6 +16,7 @@ const mockUpdatePreference = jest.fn()
 const mockCreateLease = jest.fn()
 const mockUpdateLease = jest.fn()
 const mockGetRentalAssistances = jest.fn()
+const mockGetShortFormApplication = jest.fn()
 window.scrollTo = jest.fn()
 
 const getMockApplication = () => cloneDeep(supplementalApplication)
@@ -20,6 +25,23 @@ const getWindowUrl = (id) => `/lease-ups/applications/${id}`
 
 const ID_NO_AVAILABLE_UNITS = 'idwithnoavailableunits'
 const ID_WITH_TOTAL_MONTHLY_RENT = 'idwithtotalmonthlyrent'
+
+const LISTING_ID_WITH_LEASE_MATCHING_APPLICANT = 'listingidwithleasematchingapplicant'
+const APPLICATION_ID_WITH_LEASE_MATCHING_APPLICANT = 'applicationidwithleasematchingapplicant'
+const APPLICATION_ID_WITH_CONTACT_INFO_UPDATE = 'applicationidwithcontactinfoupdate'
+
+jest.mock('@unleash/proxy-client-react')
+
+useFlagUnleash.mockImplementation(() => true)
+useFlagsStatus.mockImplementation(() => ({
+  flagsError: false,
+  flagsReady: true
+}))
+useVariant.mockImplementation(() => ({
+  payload: {
+    value: 'listingId'
+  }
+}))
 
 /**
  * TODO: instead of mocking apiService, we should probably be mocking one level up (actions.js).
@@ -35,6 +57,27 @@ jest.mock('apiService', () => {
   const _ID_WITH_SELECTED_UNIT = 'idwithselectedunit'
 
   return {
+    getShortFormApplication: async (applicationId) => {
+      mockGetShortFormApplication(applicationId)
+
+      const shortFormApplication = _cloneDeep(mockedApplication)
+      const applicant = shortFormApplication.applicant
+      shortFormApplication.contact_info = {
+        email:
+          applicationId === APPLICATION_ID_WITH_CONTACT_INFO_UPDATE
+            ? 'updated@email.com'
+            : applicant.email,
+        phone: applicant.phone,
+        phone_type: applicant.phone_type,
+        second_phone: applicant.second_phone,
+        second_phone_type: applicant.second_phone_type
+      }
+
+      return {
+        application: shortFormApplication,
+        fileBaseUrl: 'fileBaseUrl'
+      }
+    },
     getSupplementalApplication: async (applicationId) => {
       mockInitialLoad(applicationId)
 
@@ -47,6 +90,11 @@ jest.mock('apiService', () => {
       if (applicationId === _ID_NO_AVAILABLE_UNITS) {
         // let the listing know that it should have no available units.
         appWithPrefs.listing.id = _ID_NO_AVAILABLE_UNITS
+      }
+
+      if (applicationId === APPLICATION_ID_WITH_LEASE_MATCHING_APPLICANT) {
+        appWithPrefs.id = APPLICATION_ID_WITH_LEASE_MATCHING_APPLICANT
+        appWithPrefs.listing.id = LISTING_ID_WITH_LEASE_MATCHING_APPLICANT
       }
 
       _merge(appWithPrefs.preferences[0], {
@@ -90,9 +138,10 @@ jest.mock('apiService', () => {
         unit_type: 'studio',
         priority_type: null,
         max_ami_for_qualifying_unit: 50,
+        status: 'Occupied',
         leases: [
           {
-            application_id: 'testId',
+            application_id: APPLICATION_ID_WITH_LEASE_MATCHING_APPLICANT,
             preference_used_name: '',
             lease_status: 'Signed'
           }
@@ -107,13 +156,15 @@ jest.mock('apiService', () => {
               id: 'unit_without_priority',
               unit_number: 'unit without priority',
               priority_type: null,
-              max_ami_for_qualifying_unit: 50
+              max_ami_for_qualifying_unit: 50,
+              status: 'Available'
             }),
             _merge(mockedUnits[1], {
               id: 'unit_with_priority',
               unit_number: 'unit with priority',
               priority_type: 'Hearing/Vision impairments',
-              max_ami_for_qualifying_unit: 50
+              max_ami_for_qualifying_unit: 50,
+              status: 'Available'
             })
           ]
     },
@@ -169,6 +220,88 @@ const getWrapper = async (id = getMockApplication().id) => {
   return await act(async () => renderAppWithUrl(getWindowUrl(id)))
 }
 
+const getAssignedUnitCombobox = () => {
+  return within(
+    screen.getByRole('button', {
+      name: /assigned unit number/i
+    })
+  ).getByRole('combobox')
+}
+describe('isContactUpdated', () => {
+  test('returns false when applicant and contact info match', () => {
+    const shortForm = {
+      application: {
+        applicant: {
+          email: 'test@example.com',
+          phone: '415-111-1111',
+          phone_type: 'Cell',
+          second_phone: '415-222-2222',
+          second_phone_type: 'Home'
+        },
+        contact_info: {
+          email: 'test@example.com',
+          phone: '415-111-1111',
+          phone_type: 'Cell',
+          second_phone: '415-222-2222',
+          second_phone_type: 'Home'
+        }
+      }
+    }
+
+    expect(isContactUpdated(shortForm)).toBe(false)
+  })
+
+  test('returns true when any tracked field differs', () => {
+    const shortForm = {
+      application: {
+        applicant: {
+          email: 'test@example.com',
+          phone: '415-111-1111',
+          phone_type: 'Cell',
+          second_phone: '415-222-2222',
+          second_phone_type: 'Home'
+        },
+        contact_info: {
+          email: 'updated@example.com',
+          phone: '415-111-1111',
+          phone_type: 'Cell',
+          second_phone: '415-222-2222',
+          second_phone_type: 'Home'
+        }
+      }
+    }
+
+    expect(isContactUpdated(shortForm)).toBe(true)
+  })
+
+  test('returns false when shortForm is missing', () => {
+    expect(isContactUpdated(undefined)).toBe(false)
+  })
+
+  test('returns false when a contactInfo value is null', () => {
+    const shortForm = {
+      application: {
+        applicant: {
+          email: 'test@example.com',
+          phone: '415-111-1111',
+          phone_type: 'Cell',
+          second_phone: '415-222-2222',
+          second_phone_type: 'Home'
+        },
+        contact_info: {
+          email: null,
+          phone: null,
+          phone_type: null,
+          second_phone: null,
+          second_phone_type: null
+        }
+      }
+    }
+
+    expect(isContactUpdated(shortForm)).toBe(false)
+  })
+})
+
 describe('SupplementalApplicationPage', () => {
   const originalLocation = window.location
   beforeEach(() => {
@@ -198,6 +331,36 @@ describe('SupplementalApplicationPage', () => {
     expect(asFragment()).toMatchSnapshot()
 
     jest.useRealTimers()
+  })
+
+  describe('contact updated badge feature flag', () => {
+    afterEach(() => {
+      useFlagUnleash.mockImplementation(() => true)
+    })
+
+    test('shows short form updated badge when contact info flag is enabled', async () => {
+      useFlagUnleash.mockImplementation(() => true)
+
+      await getWrapper(APPLICATION_ID_WITH_CONTACT_INFO_UPDATE)
+
+      await waitFor(() => {
+        expect(mockGetShortFormApplication).toHaveBeenCalledTimes(1)
+      })
+
+      expect(screen.getByText('Contact updated')).toBeInTheDocument()
+    })
+
+    test('hides short form updated badge when contact info flag is disabled', async () => {
+      useFlagUnleash.mockImplementation((flagName) => flagName !== CONTACT_INFO_UPDATED_BADGES_FLAG)
+
+      await getWrapper(APPLICATION_ID_WITH_CONTACT_INFO_UPDATE)
+
+      await waitFor(() => {
+        expect(mockGetShortFormApplication).toHaveBeenCalledTimes(1)
+      })
+
+      expect(screen.queryByText('Contact updated')).not.toBeInTheDocument()
+    })
   })
 
   test('it only performs initial load request if nothing is changed', async () => {
@@ -457,18 +620,10 @@ describe('SupplementalApplicationPage', () => {
       // Fill out lease fields
       // Assigned Unit number
 
-      selectEvent.openMenu(
-        within(
-          screen.getByRole('button', {
-            name: /assigned unit number/i
-          })
-        ).getByRole('combobox')
-      )
+      await selectEvent.select(getAssignedUnitCombobox(), ['unit without priority'])
 
       // Lease start date
       await act(() => {
-        fireEvent.click(screen.getByText(/unit without priority/i))
-
         fireEvent.change(monthInput, {
           target: { value: '1' }
         })
@@ -589,17 +744,7 @@ describe('SupplementalApplicationPage', () => {
 
         fireEvent.click(screen.getByRole('button', { name: /edit lease/i }))
 
-        selectEvent.openMenu(
-          within(
-            screen.getByRole('button', {
-              name: /assigned unit number/i
-            })
-          ).getByRole('combobox')
-        )
-
-        act(() => {
-          fireEvent.click(screen.getByText(/unit without priority/i))
-        })
+        await selectEvent.select(getAssignedUnitCombobox(), ['unit without priority'])
       })
 
       test('it decreases the number of available units', () => {
@@ -630,29 +775,19 @@ describe('SupplementalApplicationPage', () => {
 
     describe('when unit with priority is selected', () => {
       beforeEach(async () => {
-        await getWrapper()
+        await getWrapper(APPLICATION_ID_WITH_LEASE_MATCHING_APPLICANT)
 
         fireEvent.click(screen.getByRole('button', { name: /edit lease/i }))
 
-        selectEvent.openMenu(
-          within(
-            screen.getByRole('button', {
-              name: /assigned unit number/i
-            })
-          ).getByRole('combobox')
-        )
-
-        await act(async () => {
-          await fireEvent.click(screen.getByText(/unit with priority/i))
-        })
-      })
-
-      test('it decreases the number of available units', () => {
-        expect(screen.getByTestId('total-available-count').textContent).toBe('1')
+        await selectEvent.select(getAssignedUnitCombobox(), ['unit with priority'])
       })
 
       test('it decreases the number of accessibility units', () => {
         expect(screen.getByTestId('accessibility-available-count').textContent).toBe('0')
+      })
+
+      test('shows available units based on unit status', async () => {
+        expect(screen.getByTestId('total-available-count').textContent).toBe('2')
       })
     })
   })

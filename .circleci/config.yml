@@ -2,15 +2,17 @@
 version: 2.1
 orbs:
   ruby: circleci/ruby@2.1.0
+  qlty: qltysh/qlty-orb@0.0.6
+  node: circleci/node@7.2.1
 defaults: &defaults
   working_directory: ~/tmp
   docker:
-    - image: cimg/ruby:3.1.3-browsers
+    - image: cimg/ruby:3.4.1-browsers
       environment:
         RAILS_ENV: development
         PGHOST: 127.0.0.1
         PGUSER: root
-        NODE_OPTIONS: --openssl-legacy-provider --max_old_space_size=4096
+        NODE_OPTIONS: --max_old_space_size=4096
     - image: 'cypress/base:14.15.0'
   executor: ruby/default
 non_production_jobs: &non_production_jobs
@@ -29,14 +31,14 @@ aliases:
   - &attach_workspace
     attach_workspace:
       at: ~/tmp
-  - &restore_yarn_cache
+  - &restore_pnpm_cache
     restore_cache:
-      name: Restore Yarn Cache
+      name: Restore pnpm Cache
       keys:
-        - partners-{{ .Environment.CACHE_VERSION }}-yarn-packages-{{ .Branch }}-{{ checksum "yarn.lock" }}
-        - partners-{{ .Environment.CACHE_VERSION }}-yarn-packages-{{ .Branch }}
-        - partners-{{ .Environment.CACHE_VERSION }}-yarn-packages-main
-        - partners-{{ .Environment.CACHE_VERSION }}-yarn-packages-
+        - partners-{{ .Environment.CACHE_VERSION }}-pnpm-packages-v1-{{ .Branch }}-{{ checksum "pnpm-lock.yaml" }}
+        - partners-{{ .Environment.CACHE_VERSION }}-pnpm-packages-v1-{{ .Branch }}
+        - partners-{{ .Environment.CACHE_VERSION }}-pnpm-packages-v1-main
+        - partners-{{ .Environment.CACHE_VERSION }}-pnpm-packages-v1-
   - &restore_bundler_cache
     restore_cache:
       name: Restore Bundler Cache
@@ -48,14 +50,21 @@ commands:
     description: 'Attach workspace and restore cache'
     steps:
       - *attach_workspace
-      - *restore_yarn_cache
+      - *restore_pnpm_cache
       - *restore_bundler_cache
+      - node/install:
+          node-version: 22.13.0
+      - run:
+          name: Install pnpm
+          command: |
+            sudo npm install -g pnpm@11.5.2
+
   run-e2e:
     description: 'Run e2e tests'
     steps:
       - checkout
       - prepare_workspace
-      - run: yarn cypress install
+      - run: pnpm cypress install
       - run: bundle --path vendor/bundle
       - run:
           name: Run rails server in background
@@ -71,8 +80,10 @@ commands:
       - run:
           name: Run Cypress tests
           command: |
-            TESTFILES=$(circleci tests glob "cypress/e2e/**/*.e2e.js" | circleci tests split)
-            yarn cypress run --spec $TESTFILES
+            TESTFILES=$(circleci tests glob "cypress/e2e/**/*.e2e.js" | circleci tests split --split-by=timings | paste -sd ',')
+            pnpm cypress run --spec $TESTFILES
+      - store_artifacts:
+          path: cypress/screenshots
 
 jobs:
   build:
@@ -89,22 +100,15 @@ jobs:
           paths:
             - ./vendor/bundle/
       - run:
-          name: install yarn dependencies
-          command: yarn install --check-files
+          name: install pnpm dependencies
+          command: pnpm install --frozen-lockfile
       - save_cache:
-          name: Save Yarn Package Cache
-          key: partners-{{ .Environment.CACHE_VERSION }}-yarn-packages-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          name: Save pnpm Package Cache
+          key: partners-{{ .Environment.CACHE_VERSION }}-pnpm-packages-v1-{{ .Branch }}-{{ checksum "pnpm-lock.yaml" }}
           paths:
             - node_modules/
       - run: bundle exec rake db:setup
       - run: bundle exec rake db:test:prepare
-      - run:
-          name: Download cc-test-reporter
-          command: |
-            mkdir -p tmp/
-            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
-            chmod +x ./tmp/cc-test-reporter
-            ./tmp/cc-test-reporter before-build
       - persist_to_workspace:
           root: .
           paths:
@@ -129,8 +133,8 @@ jobs:
     steps:
       - checkout
       - prepare_workspace
-      - run: yarn lint
-      - run: yarn unit
+      - run: pnpm lint
+      - run: pnpm unit
       - run: ls .
       - store_artifacts:
           path: coverage
@@ -148,14 +152,8 @@ jobs:
     steps:
       - checkout
       - *attach_workspace
-      - run: ./tmp/cc-test-reporter format-coverage -t lcov -o tmp/codeclimate.frontend.json coverage/frontend/.resultset.json
-      - run: ./tmp/cc-test-reporter format-coverage -t simplecov -o tmp/codeclimate.backend.json coverage/backend/.resultset.json
-      - run: ./tmp/cc-test-reporter sum-coverage tmp/codeclimate.*.json -p 2 -o tmp/codeclimate.total.json
-      - run: ./tmp/cc-test-reporter upload-coverage -i tmp/codeclimate.total.json
-      - persist_to_workspace:
-          root: .
-          paths:
-            - tmp/codeclimate.*.json
+      - qlty/coverage_publish:
+          files: coverage/lcov.info, coverage/coverage.json
   cleanup-test-data:
     <<: *defaults
     steps:
